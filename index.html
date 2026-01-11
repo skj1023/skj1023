@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>2026云南春节全家福路书</title>
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,6 +30,10 @@
         .scroll-mt-20 {
             scroll-margin-top: 5rem;
         }
+        /* 适配 iPhone 底部安全区域 */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
     </style>
 </head>
 <body class="bg-stone-50">
@@ -38,7 +42,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- 图标组件定义 (替代 lucide-react 库，确保单文件运行) ---
+        // --- 图标组件定义 ---
         const IconBase = ({ children, size = 24, className = "" }) => (
             <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -68,6 +72,16 @@
         const Sun = (props) => <IconBase {...props}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></IconBase>;
         const ArrowRight = (props) => <IconBase {...props}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></IconBase>;
         const MapIcon = (props) => <IconBase {...props}><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></IconBase>;
+        const Compass = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></IconBase>;
+
+        // --- 菜单配置 ---
+        const MENU_ITEMS = [
+            { id: 'overview', label: '概览', icon: Compass },
+            { id: 'logistics', label: '交通', icon: Car },
+            { id: 'itinerary', label: '行程', icon: Calendar },
+            { id: 'hotels', label: '住宿', icon: Hotel },
+            { id: 'tips', label: '备忘', icon: AlertCircle },
+        ];
 
         // --- 主应用组件 ---
         const App = () => {
@@ -76,6 +90,9 @@
 
             useEffect(() => {
                 const handleScroll = () => {
+                    // 监听滚动位置，设置 activeTab
+                    // 简单的逻辑：根据滚动位置判断当前主要显示哪个section
+                    // 这里仅处理回到顶部按钮的显示
                     if (window.scrollY > 300) {
                         setShowScrollTop(true);
                     } else {
@@ -89,161 +106,180 @@
             const scrollToSection = (id) => {
                 const element = document.getElementById(id);
                 if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
+                    // 考虑到固定导航栏的高度，进行偏移
+                    const yOffset = -80; 
+                    const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                    window.scrollTo({top: y, behavior: 'smooth'});
                     setActiveTab(id);
                 }
             };
 
             return (
-                <div className="min-h-screen bg-stone-50 text-stone-800 font-sans">
-                    {/* 导航栏 */}
+                <div className="min-h-screen bg-stone-50 text-stone-800 font-sans pb-20 md:pb-0">
+                    {/* PC端 导航栏 */}
                     <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md shadow-sm z-50 transition-all duration-300">
                         <div className="max-w-5xl mx-auto px-4">
                             <div className="flex justify-between items-center h-16">
-                                <span className="font-bold text-xl text-red-800 flex items-center gap-2">
-                                    <span className="bg-red-800 text-white p-1 rounded text-sm">马年</span> 春节·云南双城记
+                                <span className="font-bold text-lg md:text-xl text-red-800 flex items-center gap-2 truncate">
+                                    <span className="bg-red-800 text-white p-1 rounded text-xs md:text-sm shrink-0">马年</span> 
+                                    <span className="truncate">春节·云南双城记</span>
                                 </span>
+                                {/* Desktop Menu */}
                                 <div className="hidden md:flex space-x-6 text-sm font-medium text-stone-600">
-                                    {['overview', 'logistics', 'itinerary', 'hotels', 'tips'].map((item) => (
+                                    {MENU_ITEMS.map((item) => (
                                         <button
-                                            key={item}
-                                            onClick={() => scrollToSection(item)}
-                                            className={`hover:text-red-700 capitalize ${activeTab === item ? 'text-red-700 border-b-2 border-red-700' : ''}`}
+                                            key={item.id}
+                                            onClick={() => scrollToSection(item.id)}
+                                            className={`hover:text-red-700 flex items-center gap-1 transition-colors ${activeTab === item.id ? 'text-red-700 font-bold' : ''}`}
                                         >
-                                            {item === 'overview' ? '概览' : 
-                                             item === 'logistics' ? '交通策略' : 
-                                             item === 'itinerary' ? '每日行程' : 
-                                             item === 'hotels' ? '住宿' : '备忘录'}
+                                            {item.label}
                                         </button>
                                     ))}
                                 </div>
-                                <div className="md:hidden text-xs text-stone-500">2026.2.15-2.21</div>
+                                <div className="md:hidden text-xs text-stone-500 font-mono bg-stone-100 px-2 py-1 rounded">2.15-2.21</div>
                             </div>
                         </div>
                     </nav>
 
-                    {/* 顶部 Hero 区域 */}
-                    <div className="relative pt-24 pb-12 px-4 bg-gradient-to-b from-red-50 to-stone-50">
-                        <div className="max-w-4xl mx-auto text-center">
-                            <div className="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold mb-4">
-                                全家福 6人行 · 人车分流舒适版
-                            </div>
-                            <h1 className="text-4xl md:text-5xl font-extrabold text-stone-900 mb-6 leading-tight">
-                                彩云之南 · 苍洱与滇池的团圆
-                            </h1>
-                            <div className="flex flex-wrap justify-center gap-4 text-stone-600 mb-8">
-                                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
-                                    <Calendar size={18} className="text-red-600" />
-                                    <span>2026年2月15日 - 2月21日 (7天)</span>
-                                </div>
-                                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
-                                    <MapPin size={18} className="text-blue-600" />
-                                    <span>大理 (4晚) + 昆明 (2晚)</span>
-                                </div>
-                            </div>
-                            <p className="text-lg text-stone-600 max-w-2xl mx-auto italic">
-                                "一路向南，不走回头路。去繁就简，把节奏慢下来，给父母最舒适的春节。"
-                            </p>
+                    {/* 移动端 底部导航栏 (新增) */}
+                    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-50 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                        <div className="flex justify-around items-center h-16 px-1">
+                            {MENU_ITEMS.map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => scrollToSection(item.id)}
+                                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${activeTab === item.id ? 'text-red-700' : 'text-stone-400'}`}
+                                >
+                                    <item.icon size={22} strokeWidth={activeTab === item.id ? 2.5 : 2} />
+                                    <span className="text-[10px] font-medium">{item.label}</span>
+                                </button>
+                            ))}
                         </div>
                     </div>
 
-                    <main className="max-w-4xl mx-auto px-4 pb-20 space-y-16">
+                    {/* 顶部 Hero 区域 */}
+                    <div className="relative pt-24 pb-8 px-4 bg-gradient-to-b from-red-50 to-stone-50">
+                        <div className="max-w-4xl mx-auto text-center">
+                            <div className="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold mb-4">
+                                全家福 6人行 · 人车分流舒适版
+                            </div>
+                            <h1 className="text-3xl md:text-5xl font-extrabold text-stone-900 mb-4 leading-tight">
+                                彩云之南 · 团圆之旅
+                            </h1>
+                            <div className="flex flex-wrap justify-center gap-3 text-stone-600 mb-6 text-sm">
+                                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg shadow-sm">
+                                    <Calendar size={16} className="text-red-600" />
+                                    <span>7天6晚</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg shadow-sm">
+                                    <MapPin size={16} className="text-blue-600" />
+                                    <span>大理 + 昆明</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <main className="max-w-4xl mx-auto px-4 space-y-12 md:space-y-16 pb-4">
                         
                         {/* 概览板块 */}
-                        <section id="overview" className="scroll-mt-20">
-                            <h2 className="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
-                                <MapIcon className="text-red-700" /> 行程亮点
+                        <section id="overview" className="scroll-mt-24">
+                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-4 flex items-center gap-2">
+                                <Compass className="text-red-700" /> 行程亮点
                             </h2>
-                            <div className="grid md:grid-cols-3 gap-6">
-                                <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
-                                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                            <div className="grid md:grid-cols-3 gap-4">
+                                <div className="bg-white p-5 rounded-xl shadow-sm border border-stone-100 flex md:block items-center gap-4">
+                                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center shrink-0 md:mb-4">
                                         <Sun className="text-orange-600" size={20} />
                                     </div>
-                                    <h3 className="font-bold text-lg mb-2">大理深度慢游</h3>
-                                    <p className="text-stone-600 text-sm">连住4晚不挪窝。放弃奔波的沙溪，改为古城、喜洲、双廊深度游，确保父母体力。</p>
+                                    <div>
+                                        <h3 className="font-bold text-base md:text-lg mb-1 md:mb-2">大理深度慢游</h3>
+                                        <p className="text-stone-600 text-xs md:text-sm">连住4晚不挪窝，古城、喜洲、双廊深度游，确保父母体力。</p>
+                                    </div>
                                 </div>
-                                <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
-                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                                <div className="bg-white p-5 rounded-xl shadow-sm border border-stone-100 flex md:block items-center gap-4">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0 md:mb-4">
                                         <Train className="text-blue-600" size={20} />
                                     </div>
-                                    <h3 className="font-bold text-lg mb-2">人车分流策略</h3>
-                                    <p className="text-stone-600 text-sm">完美解决7座车行李装载痛点。转场日夫妻自驾运物资，父母高铁享舒适。</p>
+                                    <div>
+                                        <h3 className="font-bold text-base md:text-lg mb-1 md:mb-2">人车分流策略</h3>
+                                        <p className="text-stone-600 text-xs md:text-sm">解决7座车行李装载痛点。转场日夫妻自驾运物资，父母高铁享舒适。</p>
+                                    </div>
                                 </div>
-                                <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
-                                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                <div className="bg-white p-5 rounded-xl shadow-sm border border-stone-100 flex md:block items-center gap-4">
+                                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0 md:mb-4">
                                         <Hotel className="text-green-600" size={20} />
                                     </div>
-                                    <h3 className="font-bold text-lg mb-2">顶级住宿体验</h3>
-                                    <p className="text-stone-600 text-sm">大理住进古城边的智能民宿，昆明入住滇池旁的洲际酒店，既有烟火气又有奢享感。</p>
+                                    <div>
+                                        <h3 className="font-bold text-base md:text-lg mb-1 md:mb-2">顶级住宿体验</h3>
+                                        <p className="text-stone-600 text-xs md:text-sm">古城智能民宿 + 滇池洲际酒店，既有烟火气又有奢享感。</p>
+                                    </div>
                                 </div>
                             </div>
                         </section>
 
                         {/* 交通策略板块 */}
-                        <section id="logistics" className="scroll-mt-20 bg-gradient-to-br from-slate-50 to-slate-100 p-8 rounded-2xl border border-slate-200">
-                            <h2 className="text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                <Car className="text-blue-700" /> 核心交通接驳策略
+                        <section id="logistics" className="scroll-mt-24 bg-gradient-to-br from-slate-50 to-slate-100 p-6 md:p-8 rounded-2xl border border-slate-200">
+                            <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                <Car className="text-blue-700" /> 核心交通接驳
                             </h2>
-                            <p className="text-slate-600 mb-8 text-sm">针对6人+6个大行李箱的运力挑战，我们设计了“海陆并进”方案。</p>
+                            <p className="text-slate-600 mb-6 text-xs md:text-sm">针对6人+6个大行李箱的运力挑战，我们设计了“海陆并进”方案。</p>
 
-                            <div className="space-y-8">
+                            <div className="space-y-6 md:space-y-8">
                                 {/* 抵达 */}
-                                <div className="relative pl-8 border-l-2 border-slate-300">
-                                    <div className="absolute -left-2 top-0 w-4 h-4 bg-slate-400 rounded-full"></div>
-                                    <h3 className="font-bold text-lg text-slate-800">2月15日：多路集结</h3>
-                                    <div className="mt-3 grid md:grid-cols-2 gap-4">
-                                        <div className="bg-white p-4 rounded-lg shadow-sm">
-                                            <span className="font-bold text-blue-600 block mb-1">🚗 女方父母</span>
-                                            <p className="text-sm text-slate-600">驾车满载年货直达大理民宿，卸下重行李。</p>
+                                <div className="relative pl-6 md:pl-8 border-l-2 border-slate-300">
+                                    <div className="absolute -left-1.5 md:-left-2 top-0 w-3 h-3 md:w-4 md:h-4 bg-slate-400 rounded-full"></div>
+                                    <h3 className="font-bold text-base md:text-lg text-slate-800">2月15日：多路集结</h3>
+                                    <div className="mt-3 grid md:grid-cols-2 gap-3">
+                                        <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-100">
+                                            <span className="font-bold text-blue-600 block mb-1 text-sm">🚗 女方父母</span>
+                                            <p className="text-xs text-slate-600">驾车满载年货直达大理民宿，卸下重行李。</p>
                                         </div>
-                                        <div className="bg-white p-4 rounded-lg shadow-sm">
-                                            <span className="font-bold text-orange-600 block mb-1">✈️ 男方父母 & 夫妻</span>
-                                            <p className="text-sm text-slate-600">飞抵昆明/大理，打车前往民宿汇合，避免父母接机奔波。</p>
+                                        <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-100">
+                                            <span className="font-bold text-orange-600 block mb-1 text-sm">✈️ 男方父母 & 夫妻</span>
+                                            <p className="text-xs text-slate-600">飞抵昆明/大理，打车前往民宿汇合。</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* 大理驻扎 */}
-                                <div className="relative pl-8 border-l-2 border-slate-300">
-                                    <div className="absolute -left-2 top-0 w-4 h-4 bg-slate-400 rounded-full"></div>
-                                    <h3 className="font-bold text-lg text-slate-800">2月15-18日：大理驻扎期</h3>
-                                    <div className="bg-white p-4 rounded-lg shadow-sm mt-3">
-                                        <p className="text-sm text-slate-600">
+                                <div className="relative pl-6 md:pl-8 border-l-2 border-slate-300">
+                                    <div className="absolute -left-1.5 md:-left-2 top-0 w-3 h-3 md:w-4 md:h-4 bg-slate-400 rounded-full"></div>
+                                    <h3 className="font-bold text-base md:text-lg text-slate-800">2月15-18日：大理驻扎期</h3>
+                                    <div className="bg-white p-3 rounded-lg shadow-sm mt-3 border border-slate-100">
+                                        <p className="text-xs md:text-sm text-slate-600">
                                             <span className="font-bold">短途游玩：</span> 行李不动。7座车坐满6人游览古城周边。
                                             <br />
-                                            <span className="text-xs text-slate-500 mt-1 block">💡 舒适Tip：去双廊等稍远的地方，建议叫一辆网约车分流年轻夫妻，让父母坐得更宽敞。</span>
+                                            <span className="text-slate-500 mt-1 block">💡 去双廊等稍远的地方，建议叫一辆网约车分流年轻夫妻。</span>
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* 关键转场日 */}
-                                <div className="relative pl-8 border-l-2 border-blue-500">
-                                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-600 rounded-full ring-4 ring-blue-100"></div>
-                                    <h3 className="font-bold text-xl text-blue-800">2月19日：昆明大撤退 (人车分流)</h3>
-                                    <div className="mt-4 grid md:grid-cols-2 gap-6">
-                                        <div className="bg-white p-5 rounded-xl border-l-4 border-orange-500 shadow-sm">
+                                <div className="relative pl-6 md:pl-8 border-l-2 border-blue-500">
+                                    <div className="absolute -left-2 md:-left-2.5 top-0 w-4 h-4 md:w-5 md:h-5 bg-blue-600 rounded-full ring-4 ring-blue-100"></div>
+                                    <h3 className="font-bold text-lg md:text-xl text-blue-800">2月19日：昆明大撤退</h3>
+                                    <div className="mt-4 grid md:grid-cols-2 gap-4">
+                                        <div className="bg-white p-4 rounded-xl border-l-4 border-orange-500 shadow-sm">
                                             <div className="flex items-center gap-2 mb-2">
-                                                <Car className="text-orange-500" />
-                                                <span className="font-bold text-slate-800">A组：后勤运输队 (夫妻)</span>
+                                                <Car size={18} className="text-orange-500" />
+                                                <span className="font-bold text-sm md:text-base text-slate-800">A组：后勤运输 (夫妻)</span>
                                             </div>
-                                            <ul className="text-sm text-slate-600 space-y-2">
-                                                <li>🎯 任务：驾驶7座车</li>
-                                                <li>📦 载重：<span className="font-bold text-orange-600">放倒第三排，装载所有6个大行李箱</span></li>
-                                                <li>⏱ 耗时：自驾约 4.5 小时</li>
-                                                <li>✨ 体验：享受二人公路旅行时光</li>
+                                            <ul className="text-xs md:text-sm text-slate-600 space-y-1">
+                                                <li>📦 <span className="font-bold text-orange-600">放倒第三排，装所有行李</span></li>
+                                                <li>⏱ 自驾约 4.5 小时</li>
+                                                <li>✨ 享受二人公路旅行</li>
                                             </ul>
                                         </div>
 
-                                        <div className="bg-white p-5 rounded-xl border-l-4 border-blue-500 shadow-sm">
+                                        <div className="bg-white p-4 rounded-xl border-l-4 border-blue-500 shadow-sm">
                                             <div className="flex items-center gap-2 mb-2">
-                                                <Train className="text-blue-500" />
-                                                <span className="font-bold text-slate-800">B组：享乐团 (4位父母)</span>
+                                                <Train size={18} className="text-blue-500" />
+                                                <span className="font-bold text-sm md:text-base text-slate-800">B组：享乐团 (父母)</span>
                                             </div>
-                                            <ul className="text-sm text-slate-600 space-y-2">
-                                                <li>🎯 任务：从大理站坐高铁</li>
-                                                <li>🎒 载重：仅随身小包，轻装上阵</li>
-                                                <li>⏱ 耗时：高铁约 2 小时</li>
-                                                <li>✨ 体验：平稳舒适，车上聊天休息</li>
+                                            <ul className="text-xs md:text-sm text-slate-600 space-y-1">
+                                                <li>🎒 轻装上阵，大理站出发</li>
+                                                <li>⏱ 高铁约 2 小时</li>
+                                                <li>✨ 平稳舒适，车上休息</li>
                                             </ul>
                                         </div>
                                     </div>
@@ -252,31 +288,31 @@
                         </section>
 
                         {/* 每日行程板块 */}
-                        <section id="itinerary" className="scroll-mt-20">
-                            <h2 className="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
+                        <section id="itinerary" className="scroll-mt-24">
+                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
                                 <Calendar className="text-red-700" /> 每日详细行程
                             </h2>
                             
                             <div className="space-y-6">
                                 {/* Day 1 */}
                                 <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-100">
-                                    <div className="bg-stone-100 px-6 py-3 border-b border-stone-200 flex justify-between items-center">
-                                        <h3 className="font-bold text-stone-800">Day 1 · 2.15 (腊月廿八)</h3>
-                                        <span className="text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">初识大理</span>
+                                    <div className="bg-stone-100 px-4 md:px-6 py-3 border-b border-stone-200 flex justify-between items-center">
+                                        <h3 className="font-bold text-stone-800 text-sm md:text-base">Day 1 · 2.15 (腊月廿八)</h3>
+                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">初识大理</span>
                                     </div>
-                                    <div className="p-6">
+                                    <div className="p-4 md:p-6">
                                         <div className="space-y-4">
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">全天</div>
-                                                <div className="text-stone-700 text-sm">各路人马在大理南门民宿汇合，办理入住，休整。</div>
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">全天</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">各路人马在大理南门民宿汇合，办理入住，休整。</div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">傍晚</div>
-                                                <div className="text-stone-700 text-sm">步行前往<span className="font-bold text-red-700">大理古城南门</span>，打卡拍照，漫步复兴路。</div>
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">傍晚</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">步行前往<span className="font-bold text-red-700">大理古城南门</span>，打卡拍照，漫步复兴路。</div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">晚餐</div>
-                                                <div className="text-stone-700 text-sm">南门附近品尝<span className="font-bold">酸辣鱼</span>或<span className="font-bold">粑肉饵丝</span>。</div>
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">晚餐</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">南门附近品尝<span className="font-bold">酸辣鱼</span>或<span className="font-bold">粑肉饵丝</span>。</div>
                                             </div>
                                         </div>
                                     </div>
@@ -284,25 +320,25 @@
 
                                 {/* Day 2 */}
                                 <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-red-100">
-                                    <div className="bg-red-50 px-6 py-3 border-b border-red-100 flex justify-between items-center">
-                                        <h3 className="font-bold text-red-900">Day 2 · 2.16 (除夕)</h3>
-                                        <span className="text-xs font-medium px-2 py-1 bg-white rounded text-red-600 border border-red-200">春节团圆</span>
+                                    <div className="bg-red-50 px-4 md:px-6 py-3 border-b border-red-100 flex justify-between items-center">
+                                        <h3 className="font-bold text-red-900 text-sm md:text-base">Day 2 · 2.16 (除夕)</h3>
+                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-red-600 border border-red-200">春节团圆</span>
                                     </div>
-                                    <div className="p-6">
+                                    <div className="p-4 md:p-6">
                                         <div className="space-y-4">
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">上午</div>
-                                                <div className="text-stone-700 text-sm">
-                                                    驾车前往<span className="font-bold">感通索道</span>（更平缓，适合老人）。索道上苍山俯瞰洱海，下山步行至<span className="font-bold">寂照庵</span>吃网红素斋。
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">
+                                                    驾车前往<span className="font-bold">感通索道</span>（更平缓）。索道上苍山俯瞰洱海，下山步行至<span className="font-bold">寂照庵</span>吃网红素斋。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">下午</div>
-                                                <div className="text-stone-700 text-sm">回民宿午休，贴春联，准备过年。</div>
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">下午</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">回民宿午休，贴春联，准备过年。</div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">晚上</div>
-                                                <div className="text-stone-700 text-sm">吃<span className="font-bold text-red-600">年夜饭</span>（需提前预订），饭后回民宿看春晚、守岁。</div>
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">晚上</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">吃<span className="font-bold text-red-600">年夜饭</span>（需提前预订），饭后回民宿看春晚、守岁。</div>
                                             </div>
                                         </div>
                                     </div>
@@ -310,33 +346,29 @@
 
                                 {/* Day 3 */}
                                 <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-100">
-                                    <div className="bg-stone-100 px-6 py-3 border-b border-stone-200 flex justify-between items-center">
-                                        <h3 className="font-bold text-stone-800">Day 3 · 2.17 (初一)</h3>
-                                        <span className="text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">环海祈福</span>
+                                    <div className="bg-stone-100 px-4 md:px-6 py-3 border-b border-stone-200 flex justify-between items-center">
+                                        <h3 className="font-bold text-stone-800 text-sm md:text-base">Day 3 · 2.17 (初一)</h3>
+                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">环海祈福</span>
                                     </div>
-                                    <div className="p-6">
+                                    <div className="p-4 md:p-6">
                                         <div className="space-y-4">
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">上午</div>
-                                                <div className="text-stone-700 text-sm">
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">
                                                     前往<span className="font-bold">崇圣寺三塔</span>祈福，在“聚影池”拍三塔倒影全家福。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">中午</div>
-                                                <div className="text-stone-700 text-sm">
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">中午</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">
                                                     前往<span className="font-bold">喜洲古镇</span>，看严家大院，打卡油菜花田，吃喜洲粑粑。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">下午</div>
-                                                <div className="text-stone-700 text-sm">
-                                                    绕行至<span className="font-bold">双廊古镇</span>，找家临海咖啡馆（如木夕大里）看苍洱日落。
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">下午</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">
+                                                    绕行至<span className="font-bold">双廊古镇</span>，找家临海咖啡馆看苍洱日落。
                                                 </div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">提示</div>
-                                                <div className="text-stone-500 text-xs italic">晚上走大丽高速返回古城，避开环海西路拥堵。</div>
                                             </div>
                                         </div>
                                     </div>
@@ -344,27 +376,27 @@
 
                                 {/* Day 4 */}
                                 <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-100">
-                                    <div className="bg-stone-100 px-6 py-3 border-b border-stone-200 flex justify-between items-center">
-                                        <h3 className="font-bold text-stone-800">Day 4 · 2.18 (初二)</h3>
-                                        <span className="text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">非遗体验</span>
+                                    <div className="bg-stone-100 px-4 md:px-6 py-3 border-b border-stone-200 flex justify-between items-center">
+                                        <h3 className="font-bold text-stone-800 text-sm md:text-base">Day 4 · 2.18 (初二)</h3>
+                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">非遗体验</span>
                                     </div>
-                                    <div className="p-6">
+                                    <div className="p-4 md:p-6">
                                         <div className="space-y-4">
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">上午</div>
-                                                <div className="text-stone-700 text-sm">
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">
                                                     前往<span className="font-bold">周城（扎染之乡）</span>。全家动手制作扎染作品，作为春节纪念。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">下午</div>
-                                                <div className="text-stone-700 text-sm">
-                                                    前往<span className="font-bold">洱海生态廊道（阳南溪入口）</span>。父母坐观光车，夫妻骑行，享受无车干扰的亲水时光。
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">下午</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">
+                                                    前往<span className="font-bold">洱海生态廊道（阳南溪入口）</span>。父母坐观光车，夫妻骑行。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">晚上</div>
-                                                <div className="text-stone-700 text-sm font-bold text-red-600">
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">晚上</div>
+                                                <div className="text-stone-700 text-xs md:text-sm font-bold text-red-600">
                                                     回民宿晚餐，提前打包好所有行李，准备明天的分流转场！
                                                 </div>
                                             </div>
@@ -374,26 +406,26 @@
 
                                 {/* Day 5 */}
                                 <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-blue-100">
-                                    <div className="bg-blue-50 px-6 py-3 border-b border-blue-100 flex justify-between items-center">
-                                        <h3 className="font-bold text-blue-900">Day 5 · 2.19 (初三)</h3>
-                                        <span className="text-xs font-medium px-2 py-1 bg-white rounded text-blue-600 border border-blue-200">转场昆明</span>
+                                    <div className="bg-blue-50 px-4 md:px-6 py-3 border-b border-blue-100 flex justify-between items-center">
+                                        <h3 className="font-bold text-blue-900 text-sm md:text-base">Day 5 · 2.19 (初三)</h3>
+                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-blue-600 border border-blue-200">转场昆明</span>
                                     </div>
-                                    <div className="p-6">
+                                    <div className="p-4 md:p-6">
                                         <div className="space-y-4">
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">12:30</div>
-                                                <div className="text-stone-700 text-sm">
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">12:30</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">
                                                     <span className="font-bold text-orange-600">[A组夫妻]</span> 搬运所有行李自驾出发。<br/>
                                                     <span className="font-bold text-blue-600">[B组父母]</span> 打车去大理站，坐高铁去昆明。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">17:00</div>
-                                                <div className="text-stone-700 text-sm">全员在<span className="font-bold">昆明洲际酒店</span>汇合。</div>
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">17:00</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">全员在<span className="font-bold">昆明洲际酒店</span>汇合。</div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">傍晚</div>
-                                                <div className="text-stone-700 text-sm">步行至酒店对面的<span className="font-bold">海埂大坝</span>，投喂红嘴鸥。</div>
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">傍晚</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">步行至酒店对面的<span className="font-bold">海埂大坝</span>，投喂红嘴鸥。</div>
                                             </div>
                                         </div>
                                     </div>
@@ -401,25 +433,25 @@
 
                                 {/* Day 6 */}
                                 <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-100">
-                                    <div className="bg-stone-100 px-6 py-3 border-b border-stone-200 flex justify-between items-center">
-                                        <h3 className="font-bold text-stone-800">Day 6 · 2.20 (初四)</h3>
-                                        <span className="text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">花都漫游</span>
+                                    <div className="bg-stone-100 px-4 md:px-6 py-3 border-b border-stone-200 flex justify-between items-center">
+                                        <h3 className="font-bold text-stone-800 text-sm md:text-base">Day 6 · 2.20 (初四)</h3>
+                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">花都漫游</span>
                                     </div>
-                                    <div className="p-6">
+                                    <div className="p-4 md:p-6">
                                         <div className="space-y-4">
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">上午</div>
-                                                <div className="text-stone-700 text-sm">游览<span className="font-bold">云南民族村</span>（酒店旁步行即达）。</div>
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">游览<span className="font-bold">云南民族村</span>（酒店旁步行即达）。</div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">下午</div>
-                                                <div className="text-stone-700 text-sm">
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">下午</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">
                                                     驾车（空车）前往<span className="font-bold">斗南花市</span>。疯狂采购鲜花，直接放车里带走。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">晚上</div>
-                                                <div className="text-stone-700 text-sm">去昆明老街/南强街，感受省会夜景美食。</div>
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">晚上</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">去昆明老街/南强街，感受省会夜景美食。</div>
                                             </div>
                                         </div>
                                     </div>
@@ -427,25 +459,25 @@
 
                                 {/* Day 7 */}
                                 <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-100">
-                                    <div className="bg-stone-100 px-6 py-3 border-b border-stone-200 flex justify-between items-center">
-                                        <h3 className="font-bold text-stone-800">Day 7 · 2.21 (初五)</h3>
-                                        <span className="text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">完美收官</span>
+                                    <div className="bg-stone-100 px-4 md:px-6 py-3 border-b border-stone-200 flex justify-between items-center">
+                                        <h3 className="font-bold text-stone-800 text-sm md:text-base">Day 7 · 2.21 (初五)</h3>
+                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">完美收官</span>
                                     </div>
-                                    <div className="p-6">
+                                    <div className="p-4 md:p-6">
                                         <div className="space-y-4">
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">上午</div>
-                                                <div className="text-stone-700 text-sm">享受洲际酒店豪华早餐。</div>
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">享受洲际酒店豪华早餐。</div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">13:00</div>
-                                                <div className="text-stone-700 text-sm">
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">13:00</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">
                                                     <span className="font-bold text-blue-600">女方父母</span> 驾驶装满鲜花的7座车回重庆。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <div className="mt-1 min-w-[4rem] text-sm font-bold text-stone-400">15:00</div>
-                                                <div className="text-stone-700 text-sm">
+                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">15:00</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">
                                                     <span className="font-bold text-orange-600">男方父母 & 夫妻</span> 打车去机场返程。
                                                 </div>
                                             </div>
@@ -456,37 +488,37 @@
                         </section>
 
                         {/* 住宿推荐 */}
-                        <section id="hotels" className="scroll-mt-20">
-                            <h2 className="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
+                        <section id="hotels" className="scroll-mt-24">
+                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
                                 <Hotel className="text-red-700" /> 住宿精选
                             </h2>
-                            <div className="grid md:grid-cols-2 gap-6">
+                            <div className="grid md:grid-cols-2 gap-4">
                                 <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                                    <div className="p-6">
+                                    <div className="p-5">
                                         <div className="flex justify-between items-start mb-2">
-                                            <h3 className="font-bold text-lg">大理故里·全智能度假民宿</h3>
-                                            <span className="bg-stone-100 text-stone-600 text-xs px-2 py-1 rounded">古城南门店</span>
+                                            <h3 className="font-bold text-base md:text-lg">大理故里·全智能度假民宿</h3>
+                                            <span className="bg-stone-100 text-stone-600 text-[10px] md:text-xs px-2 py-1 rounded shrink-0">古城南门店</span>
                                         </div>
-                                        <p className="text-stone-500 text-sm mb-4">一塔路22号 (连住4晚)</p>
+                                        <p className="text-stone-500 text-xs md:text-sm mb-3">一塔路22号 (连住4晚)</p>
                                         <div className="flex gap-2 flex-wrap">
-                                            <span className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded">车可直达</span>
-                                            <span className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded">智能家居</span>
-                                            <span className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded">离古城近</span>
+                                            <span className="text-[10px] md:text-xs bg-red-50 text-red-600 px-2 py-1 rounded">车可直达</span>
+                                            <span className="text-[10px] md:text-xs bg-red-50 text-red-600 px-2 py-1 rounded">智能家居</span>
+                                            <span className="text-[10px] md:text-xs bg-red-50 text-red-600 px-2 py-1 rounded">离古城近</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                                    <div className="p-6">
+                                    <div className="p-5">
                                         <div className="flex justify-between items-start mb-2">
-                                            <h3 className="font-bold text-lg">昆明洲际酒店 (待定)</h3>
-                                            <span className="bg-stone-100 text-stone-600 text-xs px-2 py-1 rounded">度假区</span>
+                                            <h3 className="font-bold text-base md:text-lg">昆明洲际酒店 (待定)</h3>
+                                            <span className="bg-stone-100 text-stone-600 text-[10px] md:text-xs px-2 py-1 rounded shrink-0">度假区</span>
                                         </div>
-                                        <p className="text-stone-500 text-sm mb-4">滇池国家旅游度假区 (连住2晚)</p>
+                                        <p className="text-stone-500 text-xs md:text-sm mb-3">滇池国家旅游度假区 (连住2晚)</p>
                                         <div className="flex gap-2 flex-wrap">
-                                            <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">出门即海鸥</span>
-                                            <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">停车方便</span>
-                                            <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">奢华舒适</span>
+                                            <span className="text-[10px] md:text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">出门即海鸥</span>
+                                            <span className="text-[10px] md:text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">停车方便</span>
+                                            <span className="text-[10px] md:text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">奢华舒适</span>
                                         </div>
                                     </div>
                                 </div>
@@ -494,8 +526,8 @@
                         </section>
 
                         {/* 景点攻略 */}
-                        <section id="attractions" className="scroll-mt-20">
-                            <h2 className="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
+                        <section id="attractions" className="scroll-mt-24">
+                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
                                 <Camera className="text-red-700" /> 景点避坑指南
                             </h2>
                             <div className="grid md:grid-cols-2 gap-4">
@@ -507,7 +539,7 @@
                                     { title: "昆明海埂大坝", tip: "早上8-10点海鸥最饿最活跃，带帽子防鸟屎。" },
                                     { title: "斗南花市", tip: "论'捆'买花。百合、澳洲腊梅耐放，适合开车带走。" },
                                 ].map((spot, idx) => (
-                                    <div key={idx} className="flex items-start gap-3 p-4 bg-white rounded-lg border border-stone-100">
+                                    <div key={idx} className="flex items-start gap-3 p-4 bg-white rounded-lg border border-stone-100 shadow-sm">
                                         <CheckCircle size={18} className="text-green-600 mt-1 shrink-0" />
                                         <div>
                                             <h4 className="font-bold text-stone-800 text-sm">{spot.title}</h4>
@@ -519,27 +551,27 @@
                         </section>
 
                         {/* 备忘录 */}
-                        <section id="tips" className="scroll-mt-20">
-                            <h2 className="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
+                        <section id="tips" className="scroll-mt-24">
+                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
                                 <AlertCircle className="text-red-700" /> 行前备忘录
                             </h2>
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 md:p-6">
                                 <ul className="space-y-4">
-                                    <li className="flex items-center gap-3">
-                                        <span className="font-bold text-red-600 shrink-0">1月15日前</span>
-                                        <span className="text-sm text-stone-700">预订大理古城南门附近的年夜饭包间。</span>
+                                    <li className="flex items-start md:items-center gap-3">
+                                        <span className="font-bold text-red-600 shrink-0 text-sm">1月15日前</span>
+                                        <span className="text-xs md:text-sm text-stone-700">预订大理古城南门附近的年夜饭包间。</span>
                                     </li>
-                                    <li className="flex items-center gap-3">
-                                        <span className="font-bold text-red-600 shrink-0">2月05日前</span>
-                                        <span className="text-sm text-stone-700">购买2月19日“大理→昆明”的高铁票（4张）。</span>
+                                    <li className="flex items-start md:items-center gap-3">
+                                        <span className="font-bold text-red-600 shrink-0 text-sm">2月05日前</span>
+                                        <span className="text-xs md:text-sm text-stone-700">购买2月19日“大理→昆明”的高铁票（4张）。</span>
                                     </li>
-                                    <li className="flex items-center gap-3">
-                                        <span className="font-bold text-stone-800 shrink-0">穿衣指南</span>
-                                        <span className="text-sm text-stone-700">洋葱式穿衣。早晚温差大，必须带薄羽绒服。</span>
+                                    <li className="flex items-start md:items-center gap-3">
+                                        <span className="font-bold text-stone-800 shrink-0 text-sm">穿衣指南</span>
+                                        <span className="text-xs md:text-sm text-stone-700">洋葱式穿衣。早晚温差大，必须带薄羽绒服。</span>
                                     </li>
-                                    <li className="flex items-center gap-3">
-                                        <span className="font-bold text-stone-800 shrink-0">驾驶提示</span>
-                                        <span className="text-sm text-stone-700">出发前检查7座车胎压。大理回昆明段夫妻轮换驾驶。</span>
+                                    <li className="flex items-start md:items-center gap-3">
+                                        <span className="font-bold text-stone-800 shrink-0 text-sm">驾驶提示</span>
+                                        <span className="text-xs md:text-sm text-stone-700">出发前检查7座车胎压。大理回昆明段夫妻轮换驾驶。</span>
                                     </li>
                                 </ul>
                             </div>
@@ -548,16 +580,16 @@
                     </main>
 
                     {/* 页脚 */}
-                    <footer className="bg-stone-900 text-stone-400 py-12 text-center">
-                        <p className="mb-2">2026 马年大吉 · 阖家欢乐</p>
-                        <p className="text-xs">资深家庭旅行定制师为您呈现</p>
+                    <footer className="bg-stone-900 text-stone-400 py-12 text-center mt-8 pb-24 md:pb-12">
+                        <p className="mb-2 text-sm">2026 马年大吉 · 阖家欢乐</p>
+                        <p className="text-xs opacity-60">资深家庭旅行定制师为您呈现</p>
                     </footer>
 
                     {/* 回到顶部按钮 */}
                     {showScrollTop && (
                         <button 
                             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                            className="fixed bottom-8 right-8 bg-red-700 text-white p-3 rounded-full shadow-lg hover:bg-red-800 transition-colors z-50"
+                            className="fixed bottom-20 md:bottom-8 right-4 md:right-8 bg-red-700/90 backdrop-blur text-white p-3 rounded-full shadow-lg hover:bg-red-800 transition-colors z-40"
                         >
                             <ArrowRight className="transform -rotate-90" size={20} />
                         </button>
