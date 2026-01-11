@@ -30,6 +30,9 @@
         .scroll-mt-20 {
             scroll-margin-top: 5rem;
         }
+        .scroll-mt-24 {
+            scroll-margin-top: 6rem;
+        }
         /* 适配 iPhone 底部安全区域 */
         .pb-safe {
             padding-bottom: env(safe-area-inset-bottom);
@@ -81,6 +84,23 @@
         const ArrowRight = (props) => <IconBase {...props}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></IconBase>;
         const MapIcon = (props) => <IconBase {...props}><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></IconBase>;
         const Compass = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></IconBase>;
+        const Search = (props) => <IconBase {...props}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></IconBase>;
+
+        // --- 景点链接组件 ---
+        const AttractionLink = ({ name, keyword }) => {
+            const searchKeyword = keyword || name;
+            return (
+                <a 
+                    href={`https://www.baidu.com/s?wd=${encodeURIComponent(searchKeyword)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-red-700 hover:text-red-800 hover:underline cursor-pointer transition-colors inline-flex items-center gap-0.5"
+                    title={`点击百度搜索"${searchKeyword}"`}
+                >
+                    {name}
+                </a>
+            );
+        };
 
         // --- 微信遮罩组件 ---
         const WeChatMask = () => (
@@ -173,14 +193,15 @@
                                     <span className="bg-red-800 text-white p-1 rounded text-xs md:text-sm shrink-0">马年</span> 
                                     <span className="truncate">春节·云南双城记</span>
                                 </span>
-                                {/* Desktop Menu */}
-                                <div className="hidden md:flex space-x-6 text-sm font-medium text-stone-600">
+                                {/* Desktop Menu - Added Icons */}
+                                <div className="hidden md:flex space-x-2 text-sm font-medium text-stone-600">
                                     {MENU_ITEMS.map((item) => (
                                         <button
                                             key={item.id}
                                             onClick={() => scrollToSection(item.id)}
-                                            className={`hover:text-red-700 flex items-center gap-1 transition-colors ${activeTab === item.id ? 'text-red-700 font-bold' : ''}`}
+                                            className={`hover:bg-red-50 hover:text-red-700 px-3 py-2 rounded-lg flex items-center gap-2 transition-all ${activeTab === item.id ? 'bg-red-50 text-red-700 font-bold shadow-sm' : ''}`}
                                         >
+                                            <item.icon size={18} strokeWidth={activeTab === item.id ? 2.5 : 2} />
                                             {item.label}
                                         </button>
                                     ))}
@@ -357,7 +378,7 @@
                                             </div>
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">傍晚</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">步行前往<span className="font-bold text-red-700">大理古城南门</span>，打卡拍照，漫步复兴路。</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">步行前往<AttractionLink name="大理古城南门" />，打卡拍照，漫步复兴路。</div>
                                             </div>
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">晚餐</div>
@@ -378,7 +399,7 @@
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
                                                 <div className="text-stone-700 text-xs md:text-sm">
-                                                    驾车前往<span className="font-bold">感通索道</span>（更平缓）。索道上苍山俯瞰洱海，下山步行至<span className="font-bold">寂照庵</span>吃网红素斋。
+                                                    驾车前往<AttractionLink name="感通索道" />（更平缓）。索道上<AttractionLink name="苍山" />俯瞰洱海，下山步行至<AttractionLink name="寂照庵" />吃网红素斋。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
@@ -404,19 +425,19 @@
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
                                                 <div className="text-stone-700 text-xs md:text-sm">
-                                                    前往<span className="font-bold">崇圣寺三塔</span>祈福，在“聚影池”拍三塔倒影全家福。
+                                                    前往<AttractionLink name="崇圣寺三塔" />祈福，在“<AttractionLink name="聚影池" />”拍三塔倒影全家福。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">中午</div>
                                                 <div className="text-stone-700 text-xs md:text-sm">
-                                                    前往<span className="font-bold">喜洲古镇</span>，看严家大院，打卡油菜花田，吃喜洲粑粑。
+                                                    前往<AttractionLink name="喜洲古镇" />，看<AttractionLink name="严家大院" />，打卡油菜花田，吃喜洲粑粑。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">下午</div>
                                                 <div className="text-stone-700 text-xs md:text-sm">
-                                                    绕行至<span className="font-bold">双廊古镇</span>，找家临海咖啡馆看苍洱日落。
+                                                    绕行至<AttractionLink name="双廊古镇" />，找家临海咖啡馆看苍洱日落。
                                                 </div>
                                             </div>
                                         </div>
@@ -434,13 +455,13 @@
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
                                                 <div className="text-stone-700 text-xs md:text-sm">
-                                                    前往<span className="font-bold">周城（扎染之乡）</span>。全家动手制作扎染作品，作为春节纪念。
+                                                    前往<AttractionLink name="周城" keyword="周城扎染" />。全家动手制作扎染作品，作为春节纪念。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">下午</div>
                                                 <div className="text-stone-700 text-xs md:text-sm">
-                                                    前往<span className="font-bold">洱海生态廊道（阳南溪入口）</span>。父母坐观光车，夫妻骑行。
+                                                    前往<AttractionLink name="洱海生态廊道" keyword="洱海生态廊道 阳南溪" />（阳南溪入口）。父母坐观光车，夫妻骑行。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
@@ -474,7 +495,7 @@
                                             </div>
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">傍晚</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">步行至酒店对面的<span className="font-bold">海埂大坝</span>，投喂红嘴鸥。</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">步行至酒店对面的<AttractionLink name="海埂大坝" />，投喂红嘴鸥。</div>
                                             </div>
                                         </div>
                                     </div>
@@ -490,17 +511,17 @@
                                         <div className="space-y-4">
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">游览<span className="font-bold">云南民族村</span>（酒店旁步行即达）。</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">游览<AttractionLink name="云南民族村" />（酒店旁步行即达）。</div>
                                             </div>
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">下午</div>
                                                 <div className="text-stone-700 text-xs md:text-sm">
-                                                    驾车（空车）前往<span className="font-bold">斗南花市</span>。疯狂采购鲜花，直接放车里带走。
+                                                    驾车（空车）前往<AttractionLink name="斗南花市" />。疯狂采购鲜花，直接放车里带走。
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
                                                 <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">晚上</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">去昆明老街/南强街，感受省会夜景美食。</div>
+                                                <div className="text-stone-700 text-xs md:text-sm">去<AttractionLink name="昆明老街" />/<AttractionLink name="南强街" />，感受省会夜景美食。</div>
                                             </div>
                                         </div>
                                     </div>
