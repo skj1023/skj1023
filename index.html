@@ -85,6 +85,8 @@
         const MapIcon = (props) => <IconBase {...props}><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></IconBase>;
         const Compass = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></IconBase>;
         const Search = (props) => <IconBase {...props}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></IconBase>;
+        const Navigation = (props) => <IconBase {...props}><polygon points="3 11 22 2 13 21 11 13 3 11"/></IconBase>;
+        const Mountain = (props) => <IconBase {...props}><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></IconBase>;
 
         // --- 景点链接组件 ---
         const AttractionLink = ({ name, keyword }) => {
@@ -94,10 +96,11 @@
                     href={`https://www.baidu.com/s?wd=${encodeURIComponent(searchKeyword)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-bold text-red-700 hover:text-red-800 hover:underline cursor-pointer transition-colors inline-flex items-center gap-0.5"
+                    className="group inline-flex items-center gap-1 text-stone-800 font-bold hover:text-red-700 transition-colors"
                     title={`点击百度搜索"${searchKeyword}"`}
                 >
                     {name}
+                    <Search size={14} className="text-stone-400 group-hover:text-red-500 transition-colors" strokeWidth={2.5} />
                 </a>
             );
         };
@@ -105,7 +108,6 @@
         // --- 微信遮罩组件 ---
         const WeChatMask = () => (
             <div className="fixed inset-0 z-[100] bg-slate-900/95 flex flex-col items-center pt-16 px-8 text-center text-white h-screen w-screen overflow-hidden">
-                {/* 指向右上角的箭头 */}
                 <div className="absolute top-4 right-8">
                     <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white animate-float-arrow">
                         <line x1="7" y1="17" x2="17" y2="7"></line>
@@ -131,26 +133,94 @@
             </div>
         );
 
+        // --- 景点数据 (已移除图片) ---
+        const ATTRACTIONS = [
+            {
+                name: "大理古城",
+                desc: "风花雪月的起点。南门最适合打卡，复兴路买伴手礼，晚上去人民路感受民谣。",
+                tips: "避坑：别买路边几十块的银器。推荐去'床单厂艺术区'逛逛。",
+                mapKeyword: "大理古城"
+            },
+            {
+                name: "崇圣寺三塔",
+                desc: "大理地标，妙香佛国。三座古塔背靠苍山，倒映水中，气势恢宏。",
+                tips: "攻略：进门直奔'聚影池'拍倒影全家福，不用爬太高，老人不累。",
+                mapKeyword: "崇圣寺三塔文化旅游区"
+            },
+            {
+                name: "苍山感通索道",
+                desc: "俯瞰洱海最佳视角。索道平稳，沿途看苍山大峡谷，终点有清碧溪。",
+                tips: "推荐：海拔低不缺氧，风景秀丽，比洗马潭更适合带老人游玩。",
+                mapKeyword: "感通索道"
+            },
+            {
+                name: "寂照庵",
+                desc: "中国最美尼姑庵，不烧香只供花，满院的多肉植物。",
+                tips: "必吃：20元/位的素斋（11:30-13:00），需排队，务必'光盘行动'。",
+                mapKeyword: "寂照庵"
+            },
+            {
+                name: "喜洲古镇",
+                desc: "老舍笔下的'东方剑桥'。白族民居保存最好，油菜花海绝美。",
+                tips: "打卡：严家大院（看建筑）、转角楼（拍照）、喜洲粑粑（吃破酥）。",
+                mapKeyword: "喜洲古镇"
+            },
+            {
+                name: "双廊古镇",
+                desc: "苍洱风光第一镇，杨丽萍太阳宫所在地，直面苍山十九峰。",
+                tips: "体验：一定要找个临海咖啡馆喝下午茶看日落，非常治愈。",
+                mapKeyword: "双廊古镇"
+            },
+            {
+                name: "周城",
+                desc: "白族扎染之乡，家家户户有染缸，非物质文化遗产。",
+                tips: "互动：全家一起动手做扎染，比在古城买成品更有意义。",
+                mapKeyword: "周城扎染"
+            },
+            {
+                name: "洱海生态廊道",
+                desc: "真正亲水的生态公园，S弯和水杉林非常美，完全无车。",
+                tips: "入口：导航'阳南溪'。父母坐大黄鸭观光车，年轻人骑共享单车。",
+                mapKeyword: "洱海生态廊道阳南溪"
+            },
+            {
+                name: "海埂大坝",
+                desc: "昆明冬季限定浪漫，成千上万只红嘴鸥从西伯利亚飞来。",
+                tips: "时间：早上8-10点海鸥最饿最活跃。记得戴帽子防'鸟屎运'。",
+                mapKeyword: "海埂大坝"
+            },
+            {
+                name: "云南民族村",
+                desc: "一站式体验云南26个少数民族风情，就在滇池边。",
+                tips: "建议：安排半天时间，里面很大，可以挑几个感兴趣的寨子逛。",
+                mapKeyword: "云南民族村"
+            },
+            {
+                name: "斗南花市",
+                desc: "亚洲最大的鲜花交易市场，鲜花论斤卖，品种极多。",
+                tips: "购物：百合、澳梅耐放，适合开车带走。二楼有多肉批发。",
+                mapKeyword: "斗南花卉市场"
+            }
+        ];
+
         // --- 菜单配置 ---
         const MENU_ITEMS = [
             { id: 'overview', label: '概览', icon: Compass },
             { id: 'logistics', label: '交通', icon: Car },
             { id: 'itinerary', label: '行程', icon: Calendar },
+            { id: 'attractions', label: '景点', icon: Mountain }, // Changed icon to Mountain
             { id: 'hotels', label: '住宿', icon: Hotel },
             { id: 'tips', label: '备忘', icon: AlertCircle },
         ];
 
         // --- 主应用组件 ---
         const App = () => {
-            // 微信环境检测状态
             const [isWeChat, setIsWeChat] = useState(false);
             const [activeTab, setActiveTab] = useState('overview');
             const [showScrollTop, setShowScrollTop] = useState(false);
 
-            // 初始化检测 UserAgent
             useEffect(() => {
                 const ua = navigator.userAgent.toLowerCase();
-                // 简单的微信环境判断
                 if (/micromessenger/i.test(ua)) {
                     setIsWeChat(true);
                 }
@@ -178,7 +248,6 @@
                 }
             };
 
-            // 如果是微信环境，直接返回遮罩，不渲染后续内容
             if (isWeChat) {
                 return <WeChatMask />;
             }
@@ -193,7 +262,7 @@
                                     <span className="bg-red-800 text-white p-1 rounded text-xs md:text-sm shrink-0">马年</span> 
                                     <span className="truncate">春节·云南双城记</span>
                                 </span>
-                                {/* Desktop Menu - Added Icons */}
+                                {/* Desktop Menu */}
                                 <div className="hidden md:flex space-x-2 text-sm font-medium text-stone-600">
                                     {MENU_ITEMS.map((item) => (
                                         <button
@@ -557,6 +626,46 @@
                             </div>
                         </section>
 
+                        {/* 景点攻略 (Updated) */}
+                        <section id="attractions" className="scroll-mt-24">
+                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
+                                <Mountain className="text-red-700" /> 景点攻略
+                            </h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {ATTRACTIONS.map((item, idx) => (
+                                    <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-stone-100 flex flex-col justify-between h-full">
+                                        <div>
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h4 className="font-bold text-stone-800 text-base">
+                                                    <AttractionLink name={item.name} keyword={item.mapKeyword} />
+                                                </h4>
+                                            </div>
+                                            <p className="text-xs text-stone-600 leading-relaxed mb-3">{item.desc}</p>
+                                        </div>
+                                        
+                                        <div className="mt-auto space-y-3">
+                                            <div className="bg-orange-50 p-2 rounded-lg border border-orange-100">
+                                                <p className="text-[10px] md:text-xs text-orange-800 font-medium flex gap-1">
+                                                    <span className="shrink-0">💡</span>
+                                                    <span>{item.tips}</span>
+                                                </p>
+                                            </div>
+                                            
+                                            <a 
+                                                href={`https://map.baidu.com/search/${encodeURIComponent(item.mapKeyword)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-full flex items-center justify-center gap-1.5 text-xs text-blue-600 hover:text-white hover:bg-blue-600 font-medium bg-blue-50 py-2 rounded-lg transition-all"
+                                            >
+                                                <Navigation size={12} /> 
+                                                百度导航
+                                            </a>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+
                         {/* 住宿推荐 */}
                         <section id="hotels" className="scroll-mt-24">
                             <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
@@ -602,31 +711,6 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </section>
-
-                        {/* 景点攻略 */}
-                        <section id="attractions" className="scroll-mt-24">
-                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
-                                <Camera className="text-red-700" /> 景点避坑指南
-                            </h2>
-                            <div className="grid md:grid-cols-2 gap-4">
-                                {[
-                                    { title: "崇圣寺三塔", tip: "进门别挤在塔下，去'聚影池'拍倒影全家福。" },
-                                    { title: "苍山感通索道", tip: "海拔低不缺氧，风景秀丽，比洗马潭更适合老人。" },
-                                    { title: "寂照庵", tip: "不烧香只供花。一定要尝尝20元的素斋，需光盘行动。" },
-                                    { title: "喜洲古镇", tip: "必看严家大院，必吃咸味喜洲粑粑，必去油菜花田。" },
-                                    { title: "昆明海埂大坝", tip: "早上8-10点海鸥最饿最活跃，带帽子防鸟屎。" },
-                                    { title: "斗南花市", tip: "论'捆'买花。百合、澳洲腊梅耐放，适合开车带走。" },
-                                ].map((spot, idx) => (
-                                    <div key={idx} className="flex items-start gap-3 p-4 bg-white rounded-lg border border-stone-100 shadow-sm">
-                                        <CheckCircle size={18} className="text-green-600 mt-1 shrink-0" />
-                                        <div>
-                                            <h4 className="font-bold text-stone-800 text-sm">{spot.title}</h4>
-                                            <p className="text-xs text-stone-600 mt-1">{spot.tip}</p>
-                                        </div>
-                                    </div>
-                                ))}
                             </div>
                         </section>
 
