@@ -13,34 +13,47 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
-        /* 简单的自定义滚动条样式 */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* Apple-style smooth scrolling & fonts */
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f7; /* Apple light gray background */
+            color: #1d1d1f; /* Apple text black */
+            transition: font-size 0.3s ease;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #c7c7c7;
-            border-radius: 4px;
+
+        /* Hide scrollbar for clean look but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        .scroll-mt-20 {
-            scroll-margin-top: 5rem;
+
+        /* Animations */
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .scroll-mt-24 {
-            scroll-margin-top: 6rem;
+        .animate-fade-in-up {
+            animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        .scroll-mt-32 {
-            scroll-margin-top: 8rem;
-        }
-        /* 适配 iPhone 底部安全区域 */
+        
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+
         .pb-safe {
             padding-bottom: env(safe-area-inset-bottom);
         }
-        /* 微信遮罩层动画 */
+
+        /* WeChat Mask Animation */
         @keyframes float-arrow {
             0%, 100% { transform: translate(0, 0) rotate(-45deg); }
             50% { transform: translate(5px, -5px) rotate(-45deg); }
@@ -48,58 +61,43 @@
         .animate-float-arrow {
             animation: float-arrow 1.5s ease-in-out infinite;
         }
-        /* 隐藏横向滚动条但保留功能 */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-        }
     </style>
 </head>
-<body class="bg-stone-50">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- 图标组件定义 ---
+        // --- Icons (Minimalist) ---
         const IconBase = ({ children, size = 24, className = "" }) => (
-            <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width={size} 
-                height={size} 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className={className}
-            >
-                {children}
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
+        );
+        const Calendar = (p) => <IconBase {...p}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></IconBase>;
+        const MapPin = (p) => <IconBase {...p}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></IconBase>;
+        const Car = (p) => <IconBase {...p}><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></IconBase>;
+        const Train = (p) => <IconBase {...p}><rect x="6" y="4" width="12" height="16" rx="2"/><line x1="10" y1="4" x2="6" y2="8"/><line x1="14" y1="4" x2="18" y2="8"/><rect x="8" y="16" width="8" height="2"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></IconBase>;
+        const Hotel = (p) => <IconBase {...p}><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/><polyline points="7 22 7 15 12 15 12 22"/><polyline points="17 22 17 15 12 15 12 22"/></IconBase>;
+        const Camera = (p) => <IconBase {...p}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></IconBase>;
+        const AlertCircle = (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></IconBase>;
+        const CheckCircle = (p) => <IconBase {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></IconBase>;
+        const Sun = (p) => <IconBase {...p}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></IconBase>;
+        const ArrowRight = (p) => <IconBase {...p}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></IconBase>;
+        const Compass = (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></IconBase>;
+        const Search = (p) => <IconBase {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></IconBase>;
+        const Navigation = (p) => <IconBase {...p}><polygon points="3 11 22 2 13 21 11 13 3 11"/></IconBase>;
+        const Mountain = (p) => <IconBase {...p}><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></IconBase>;
+        const Type = (p) => <IconBase {...p}><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></IconBase>;
+
+        // --- Components ---
+
+        const SectionTitle = ({ title, icon: Icon }) => (
+            <h2 className="text-3xl md:text-4xl font-semibold text-[#1d1d1f] mb-8 flex items-center gap-3 tracking-tight">
+                {Icon && <Icon className="text-red-600" size={32} />}
+                {title}
+            </h2>
         );
 
-        const Calendar = (props) => <IconBase {...props}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></IconBase>;
-        const MapPin = (props) => <IconBase {...props}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></IconBase>;
-        const Car = (props) => <IconBase {...props}><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></IconBase>;
-        const Train = (props) => <IconBase {...props}><rect x="6" y="4" width="12" height="16" rx="2"/><line x1="10" y1="4" x2="6" y2="8"/><line x1="14" y1="4" x2="18" y2="8"/><rect x="8" y="16" width="8" height="2"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></IconBase>;
-        const Plane = (props) => <IconBase {...props}><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></IconBase>;
-        const Hotel = (props) => <IconBase {...props}><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/><polyline points="7 22 7 15 12 15 12 22"/><polyline points="17 22 17 15 12 15 12 22"/></IconBase>;
-        const Camera = (props) => <IconBase {...props}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></IconBase>;
-        const AlertCircle = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></IconBase>;
-        const CheckCircle = (props) => <IconBase {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></IconBase>;
-        const Sun = (props) => <IconBase {...props}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></IconBase>;
-        const ArrowRight = (props) => <IconBase {...props}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></IconBase>;
-        const MapIcon = (props) => <IconBase {...props}><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></IconBase>;
-        const Compass = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></IconBase>;
-        const Search = (props) => <IconBase {...props}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></IconBase>;
-        const Navigation = (props) => <IconBase {...props}><polygon points="3 11 22 2 13 21 11 13 3 11"/></IconBase>;
-        const Mountain = (props) => <IconBase {...props}><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></IconBase>;
-
-        // --- 景点链接组件 ---
         const AttractionLink = ({ name, keyword }) => {
             const searchKeyword = keyword || name;
             return (
@@ -107,134 +105,60 @@
                     href={`https://www.baidu.com/s?wd=${encodeURIComponent(searchKeyword)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group inline-flex items-center gap-1 text-stone-800 font-bold hover:text-red-700 transition-colors"
+                    className="inline-flex items-center gap-1 font-semibold text-red-600 hover:underline hover:text-red-700 transition-colors"
                     title={`点击百度搜索"${searchKeyword}"`}
+                    onClick={(e) => e.stopPropagation()} 
                 >
                     {name}
-                    <Search size={14} className="text-stone-400 group-hover:text-red-500 transition-colors" strokeWidth={2.5} />
+                    <Search size="0.8em" strokeWidth={3} />
                 </a>
             );
         };
 
-        // --- 微信遮罩组件 ---
-        const WeChatMask = () => (
-            <div className="fixed inset-0 z-[100] bg-slate-900/95 flex flex-col items-center pt-16 px-8 text-center text-white h-screen w-screen overflow-hidden">
-                <div className="absolute top-4 right-8">
-                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white animate-float-arrow">
-                        <line x1="7" y1="17" x2="17" y2="7"></line>
-                        <polyline points="7 7 17 7 17 17"></polyline>
-                    </svg>
-                </div>
-                
-                <div className="mt-20 space-y-8 animate-fade-in">
-                    <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-red-900/50">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="16" x2="12" y2="12"></line>
-                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                        </svg>
-                    </div>
-                    <h2 className="text-2xl font-bold tracking-wide">请在浏览器打开</h2>
-                    <div className="text-lg text-slate-300 leading-relaxed space-y-2">
-                        <p>为了获得完整的路书体验</p>
-                        <p>请点击屏幕右上角 <span className="font-bold text-white text-xl mx-1">···</span></p>
-                        <p>选择 <span className="text-white font-bold bg-white/20 px-2 py-1 rounded">在浏览器打开</span></p>
-                    </div>
-                </div>
+        const Card = ({ children, className = "" }) => (
+            <div className={`bg-white rounded-3xl p-6 md:p-8 shadow-sm hover:shadow-xl transition-shadow duration-300 border border-white/50 ${className}`}>
+                {children}
             </div>
         );
 
-        // --- 数据配置 ---
+        const Badge = ({ children, color = "stone" }) => {
+            const colors = {
+                red: "bg-red-100 text-red-700",
+                blue: "bg-blue-100 text-blue-700",
+                orange: "bg-orange-100 text-orange-700",
+                stone: "bg-stone-100 text-stone-600",
+            };
+            return (
+                <span className={`text-[0.75em] font-medium px-2.5 py-1 rounded-full ${colors[color] || colors.stone}`}>
+                    {children}
+                </span>
+            );
+        };
+
+        // --- Data ---
         const ATTRACTIONS = [
-            {
-                name: "大理古城",
-                desc: "风花雪月的起点。南门最适合打卡，复兴路买伴手礼，晚上去人民路感受民谣。",
-                tips: "避坑：别买路边几十块的银器。推荐去'床单厂艺术区'逛逛。",
-                mapKeyword: "大理古城",
-                navLink: "https://j.map.baidu.com/29/Z3"
-            },
-            {
-                name: "崇圣寺三塔",
-                desc: "大理地标，妙香佛国。三座古塔背靠苍山，倒映水中，气势恢宏。",
-                tips: "攻略：进门直奔'聚影池'拍倒影全家福，不用爬太高，老人不累。",
-                mapKeyword: "崇圣寺三塔文化旅游区",
-                navLink: "https://j.map.baidu.com/95/lLu"
-            },
-            {
-                name: "苍山感通索道",
-                desc: "俯瞰洱海最佳视角。索道平稳，沿途看苍山大峡谷，终点有清碧溪。",
-                tips: "推荐：海拔低不缺氧，风景秀丽，比洗马潭更适合带老人游玩。",
-                mapKeyword: "感通索道",
-                navLink: "https://j.map.baidu.com/9a/1K5"
-            },
-            {
-                name: "寂照庵",
-                desc: "中国最美尼姑庵，不烧香只供花，满院的多肉植物。",
-                tips: "必吃：20元/位的素斋（11:30-13:00），需排队，务必'光盘行动'。",
-                mapKeyword: "寂照庵",
-                navLink: "https://j.map.baidu.com/39/dK"
-            },
-            {
-                name: "喜洲古镇",
-                desc: "老舍笔下的'东方剑桥'。白族民居保存最好，油菜花海绝美。",
-                tips: "打卡：严家大院（看建筑）、转角楼（拍照）、喜洲粑粑（吃破酥）。",
-                mapKeyword: "喜洲古镇",
-                navLink: "https://j.map.baidu.com/14/Hg5"
-            },
-            {
-                name: "双廊古镇",
-                desc: "苍洱风光第一镇，杨丽萍太阳宫所在地，直面苍山十九峰。",
-                tips: "体验：一定要找个临海咖啡馆喝下午茶看日落，非常治愈。",
-                mapKeyword: "双廊古镇",
-                navLink: "https://j.map.baidu.com/5d/XDm"
-            },
-            {
-                name: "周城",
-                desc: "白族扎染之乡，家家户户有染缸，非物质文化遗产。",
-                tips: "互动：全家一起动手做扎染，比在古城买成品更有意义。",
-                mapKeyword: "周城扎染",
-                navLink: "https://j.map.baidu.com/73/J3sf"
-            },
-            {
-                name: "洱海生态廊道",
-                desc: "真正亲水的生态公园，S弯和水杉林非常美，完全无车。",
-                tips: "入口：导航'阳南溪'。父母坐大黄鸭观光车，年轻人骑共享单车。",
-                mapKeyword: "洱海生态廊道阳南溪",
-                navLink: "https://j.map.baidu.com/2a/Dgsk"
-            },
-            {
-                name: "海埂大坝",
-                desc: "昆明冬季限定浪漫，成千上万只红嘴鸥从西伯利亚飞来。",
-                tips: "时间：早上8-10点海鸥最饿最活跃。记得戴帽子防'鸟屎运'。",
-                mapKeyword: "海埂大坝",
-                navLink: "https://j.map.baidu.com/64/ZGr"
-            },
-            {
-                name: "云南民族村",
-                desc: "一站式体验云南26个少数民族风情，就在滇池边。",
-                tips: "建议：安排半天时间，里面很大，可以挑几个感兴趣的寨子逛。",
-                mapKeyword: "云南民族村",
-                navLink: "https://j.map.baidu.com/1c/0-J"
-            },
-            {
-                name: "斗南花市",
-                desc: "亚洲最大的鲜花交易市场，鲜花论斤卖，品种极多。",
-                tips: "购物：百合、澳梅耐放，适合开车带走。二楼有多肉批发。",
-                mapKeyword: "斗南花卉市场",
-                navLink: "https://j.map.baidu.com/aa/Zml"
-            }
+            { name: "大理古城", desc: "风花雪月的起点。南门最适合打卡，复兴路买伴手礼，晚上去人民路感受民谣。", tips: "避坑：别买路边几十块的银器。推荐去'床单厂艺术区'逛逛。", mapKeyword: "大理古城", navLink: "https://j.map.baidu.com/29/Z3" },
+            { name: "崇圣寺三塔", desc: "大理地标，妙香佛国。三座古塔背靠苍山，倒映水中，气势恢宏。", tips: "攻略：进门直奔'聚影池'拍倒影全家福，不用爬太高，老人不累。", mapKeyword: "崇圣寺三塔文化旅游区", navLink: "https://j.map.baidu.com/95/lLu" },
+            { name: "苍山感通索道", desc: "俯瞰洱海最佳视角。索道平稳，沿途看苍山大峡谷，终点有清碧溪。", tips: "推荐：海拔低不缺氧，风景秀丽，比洗马潭更适合带老人游玩。", mapKeyword: "感通索道", navLink: "https://j.map.baidu.com/9a/1K5" },
+            { name: "寂照庵", desc: "中国最美尼姑庵，不烧香只供花，满院的多肉植物。", tips: "必吃：20元/位的素斋（11:30-13:00），需排队，务必'光盘行动'。", mapKeyword: "寂照庵", navLink: "https://j.map.baidu.com/39/dK" },
+            { name: "喜洲古镇", desc: "老舍笔下的'东方剑桥'。白族民居保存最好，油菜花海绝美。", tips: "打卡：严家大院（看建筑）、转角楼（拍照）、喜洲粑粑（吃破酥）。", mapKeyword: "喜洲古镇", navLink: "https://j.map.baidu.com/14/Hg5" },
+            { name: "双廊古镇", desc: "苍洱风光第一镇，杨丽萍太阳宫所在地，直面苍山十九峰。", tips: "体验：一定要找个临海咖啡馆喝下午茶看日落，非常治愈。", mapKeyword: "双廊古镇", navLink: "https://j.map.baidu.com/5d/XDm" },
+            { name: "周城", desc: "白族扎染之乡，家家户户有染缸，非物质文化遗产。", tips: "互动：全家一起动手做扎染，比在古城买成品更有意义。", mapKeyword: "周城扎染", navLink: "https://j.map.baidu.com/73/J3sf" },
+            { name: "洱海生态廊道", desc: "真正亲水的生态公园，S弯和水杉林非常美，完全无车。", tips: "入口：导航'阳南溪'。父母坐大黄鸭观光车，年轻人骑共享单车。", mapKeyword: "洱海生态廊道阳南溪", navLink: "https://j.map.baidu.com/2a/Dgsk" },
+            { name: "海埂大坝", desc: "昆明冬季限定浪漫，成千上万只红嘴鸥从西伯利亚飞来。", tips: "时间：早上8-10点海鸥最饿最活跃。记得戴帽子防'鸟屎运'。", mapKeyword: "海埂大坝", navLink: "https://j.map.baidu.com/64/ZGr" },
+            { name: "云南民族村", desc: "一站式体验云南26个少数民族风情，就在滇池边。", tips: "建议：安排半天时间，里面很大，可以挑几个感兴趣的寨子逛。", mapKeyword: "云南民族村", navLink: "https://j.map.baidu.com/1c/0-J" },
+            { name: "斗南花市", desc: "亚洲最大的鲜花交易市场，鲜花论斤卖，品种极多。", tips: "购物：百合、澳梅耐放，适合开车带走。二楼有多肉批发。", mapKeyword: "斗南花卉市场", navLink: "https://j.map.baidu.com/aa/Zml" }
         ];
 
         const MENU_ITEMS = [
             { id: 'overview', label: '概览', icon: Compass },
             { id: 'logistics', label: '交通', icon: Car },
             { id: 'itinerary', label: '行程', icon: Calendar },
-            { id: 'hotels', label: '住宿', icon: Hotel }, // Moved up
-            { id: 'attractions', label: '景点', icon: Mountain }, // Moved down
+            { id: 'hotels', label: '住宿', icon: Hotel },
+            { id: 'attractions', label: '景点', icon: Mountain },
             { id: 'tips', label: '备忘', icon: AlertCircle },
         ];
 
-        // 日历数据
         const CALENDAR_DAYS = [
             { id: 1, date: '2.15', weekday: '周日', lunar: '腊月廿八', label: 'Day 1' },
             { id: 2, date: '2.16', weekday: '周一', lunar: '除夕', label: 'Day 2' },
@@ -245,36 +169,68 @@
             { id: 7, date: '2.21', weekday: '周六', lunar: '初五', label: 'Day 7' },
         ];
 
-        // --- 主应用组件 ---
+        // --- WeChat Mask ---
+        const WeChatMask = () => (
+            <div className="fixed inset-0 z-[100] bg-[#1d1d1f] flex flex-col items-center pt-20 px-8 text-center text-white h-screen w-screen overflow-hidden">
+                <div className="absolute top-6 right-8">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white animate-float-arrow">
+                        <line x1="7" y1="17" x2="17" y2="7"></line>
+                        <polyline points="7 7 17 7 17 17"></polyline>
+                    </svg>
+                </div>
+                <div className="mt-20 space-y-8 animate-fade-in-up">
+                    <div className="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-red-900/50">
+                        <Compass size={48} />
+                    </div>
+                    <h2 className="text-3xl font-bold tracking-wide">请在浏览器打开</h2>
+                    <div className="text-xl text-gray-300 leading-relaxed space-y-2">
+                        <p>为了获得最佳的阅读体验</p>
+                        <p>请点击右上角 <span className="font-bold text-white text-2xl mx-1">···</span></p>
+                        <p>选择 <span className="text-white font-bold bg-white/20 px-3 py-1 rounded-lg">在浏览器打开</span></p>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // --- Main App ---
         const App = () => {
             const [isWeChat, setIsWeChat] = useState(false);
             const [activeTab, setActiveTab] = useState('overview');
             const [activeDay, setActiveDay] = useState(null);
             const [showScrollTop, setShowScrollTop] = useState(false);
+            
+            // Font Size State: 1 = Normal, 1.2 = Large, 1.4 = Extra Large
+            const [fontScale, setFontScale] = useState(1);
 
             useEffect(() => {
                 const ua = navigator.userAgent.toLowerCase();
-                if (/micromessenger/i.test(ua)) {
-                    setIsWeChat(true);
-                }
+                if (/micromessenger/i.test(ua)) setIsWeChat(true);
             }, []);
 
             useEffect(() => {
-                const handleScroll = () => {
-                    if (window.scrollY > 300) {
-                        setShowScrollTop(true);
-                    } else {
-                        setShowScrollTop(false);
-                    }
-                };
+                const handleScroll = () => setShowScrollTop(window.scrollY > 300);
                 window.addEventListener('scroll', handleScroll);
                 return () => window.removeEventListener('scroll', handleScroll);
             }, []);
 
+            const toggleFontScale = () => {
+                setFontScale(prev => {
+                    if (prev === 1) return 1.2;
+                    if (prev === 1.2) return 1.4;
+                    return 1;
+                });
+            };
+
+            const getFontSizeLabel = () => {
+                if (fontScale === 1) return "标准";
+                if (fontScale === 1.2) return "大号";
+                return "特大";
+            };
+
             const scrollToSection = (id) => {
                 const element = document.getElementById(id);
                 if (element) {
-                    const yOffset = -80; 
+                    const yOffset = -100;
                     const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
                     window.scrollTo({top: y, behavior: 'smooth'});
                     setActiveTab(id);
@@ -284,53 +240,68 @@
             const scrollToDay = (dayId) => {
                 const element = document.getElementById(`day-${dayId}`);
                 if (element) {
-                    const yOffset = -180; // 留出顶部导航和日历条的空间
+                    const yOffset = -220; 
                     const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
                     window.scrollTo({top: y, behavior: 'smooth'});
                     setActiveDay(dayId);
                 }
             };
 
-            if (isWeChat) {
-                return <WeChatMask />;
-            }
+            if (isWeChat) return <WeChatMask />;
 
             return (
-                <div className="min-h-screen bg-stone-50 text-stone-800 font-sans pb-20 md:pb-0">
-                    {/* PC端 导航栏 */}
-                    <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md shadow-sm z-50 transition-all duration-300">
-                        <div className="max-w-5xl mx-auto px-4">
+                <div 
+                    className="min-h-screen pb-24 md:pb-0"
+                    style={{ fontSize: `${fontScale * 16}px` }} // Root font scaling
+                >
+                    {/* Navigation Bar (Glassmorphism) */}
+                    <nav className="fixed top-0 left-0 right-0 bg-[#f5f5f7]/80 backdrop-blur-xl border-b border-stone-200/50 z-50 transition-all duration-300">
+                        <div className="max-w-6xl mx-auto px-4">
                             <div className="flex justify-between items-center h-16">
-                                <span className="font-bold text-lg md:text-xl text-red-800 flex items-center gap-2 truncate">
-                                    <span className="bg-red-800 text-white p-1 rounded text-xs md:text-sm shrink-0">马年</span> 
-                                    <span className="truncate">春节·云南双城记</span>
+                                <span 
+                                    className="font-semibold text-red-700 flex items-center gap-2 cursor-pointer"
+                                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                >
+                                    <span className="bg-red-600 text-white px-2 py-0.5 rounded text-[0.8em]">马年</span> 
+                                    <span className="text-[1.1em] tracking-tight text-[#1d1d1f]">春节·双城记</span>
                                 </span>
-                                {/* Desktop Menu */}
-                                <div className="hidden md:flex space-x-2 text-sm font-medium text-stone-600">
-                                    {MENU_ITEMS.map((item) => (
-                                        <button
-                                            key={item.id}
-                                            onClick={() => scrollToSection(item.id)}
-                                            className={`hover:bg-red-50 hover:text-red-700 px-3 py-2 rounded-lg flex items-center gap-2 transition-all ${activeTab === item.id ? 'bg-red-50 text-red-700 font-bold shadow-sm' : ''}`}
-                                        >
-                                            <item.icon size={18} strokeWidth={activeTab === item.id ? 2.5 : 2} />
-                                            {item.label}
-                                        </button>
-                                    ))}
+                                
+                                <div className="flex items-center gap-4">
+                                    {/* Desktop Menu */}
+                                    <div className="hidden md:flex space-x-1">
+                                        {MENU_ITEMS.map((item) => (
+                                            <button
+                                                key={item.id}
+                                                onClick={() => scrollToSection(item.id)}
+                                                className={`px-3 py-1.5 rounded-full text-[0.9em] transition-all duration-300 ${activeTab === item.id ? 'text-[#1d1d1f] font-medium bg-white shadow-sm' : 'text-stone-500 hover:text-[#1d1d1f]'}`}
+                                            >
+                                                {item.label}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Font Size Toggle Button */}
+                                    <button 
+                                        onClick={toggleFontScale}
+                                        className="flex items-center gap-1.5 bg-stone-200/50 hover:bg-stone-200 text-[#1d1d1f] px-3 py-1.5 rounded-full transition-colors active:scale-95"
+                                        title="调整字体大小"
+                                    >
+                                        <Type size={18} />
+                                        <span className="text-[0.8em] font-medium w-8 text-center">{getFontSizeLabel()}</span>
+                                    </button>
                                 </div>
-                                <div className="md:hidden text-xs text-stone-500 font-mono bg-stone-100 px-2 py-1 rounded">2.15-2.21</div>
                             </div>
                         </div>
                     </nav>
 
-                    {/* 移动端 底部导航栏 */}
-                    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-50 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                        <div className="flex justify-around items-center h-16 px-1">
+                    {/* Mobile Bottom Nav */}
+                    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#f5f5f7]/90 backdrop-blur-xl border-t border-stone-200 z-50 pb-safe shadow-lg">
+                        <div className="flex justify-around items-center h-16 px-2">
                             {MENU_ITEMS.map((item) => (
                                 <button
                                     key={item.id}
                                     onClick={() => scrollToSection(item.id)}
-                                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${activeTab === item.id ? 'text-red-700' : 'text-stone-400'}`}
+                                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${activeTab === item.id ? 'text-red-600' : 'text-stone-400'}`}
                                 >
                                     <item.icon size={22} strokeWidth={activeTab === item.id ? 2.5 : 2} />
                                     <span className="text-[10px] font-medium">{item.label}</span>
@@ -339,424 +310,258 @@
                         </div>
                     </div>
 
-                    {/* 顶部 Hero 区域 */}
-                    <div className="relative pt-24 pb-8 px-4 bg-gradient-to-b from-red-50 to-stone-50">
-                        <div className="max-w-4xl mx-auto text-center">
-                            <div className="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold mb-4">
-                                全家福 6人行 · 人车分流舒适版
+                    {/* Hero Section */}
+                    <div className="relative pt-32 pb-16 px-6 text-center animate-fade-in-up">
+                        <div className="max-w-4xl mx-auto">
+                            <div className="inline-block px-4 py-1.5 bg-red-100 text-red-700 rounded-full text-[0.85em] font-semibold mb-6 tracking-wide">
+                                全家福 6人行 · 舒适深度游
                             </div>
-                            <h1 className="text-3xl md:text-5xl font-extrabold text-stone-900 mb-4 leading-tight">
-                                彩云之南 · 团圆之旅
+                            <h1 className="text-5xl md:text-7xl font-bold text-[#1d1d1f] mb-6 leading-tight tracking-tight">
+                                彩云之南。<br/>
+                                <span className="text-red-600">团圆</span> 之旅。
                             </h1>
-                            <div className="flex flex-wrap justify-center gap-3 text-stone-600 mb-6 text-sm">
-                                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg shadow-sm">
-                                    <Calendar size={16} className="text-red-600" />
-                                    <span>7天6晚</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg shadow-sm">
-                                    <MapPin size={16} className="text-blue-600" />
-                                    <span>大理 + 昆明</span>
-                                </div>
-                            </div>
+                            <p className="text-[1.2em] md:text-[1.5em] text-stone-500 max-w-2xl mx-auto font-medium leading-relaxed">
+                                大理的慢时光，昆明的花与海。<br/>
+                                这一次，给父母最从容的春节。
+                            </p>
                         </div>
                     </div>
 
-                    <main className="max-w-4xl mx-auto px-4 space-y-12 md:space-y-16 pb-4">
+                    <main className="max-w-6xl mx-auto px-6 space-y-24 md:space-y-32 pb-12">
                         
-                        {/* 概览板块 */}
-                        <section id="overview" className="scroll-mt-24">
-                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-4 flex items-center gap-2">
-                                <Compass className="text-red-700" /> 行程亮点
-                            </h2>
-                            <div className="grid md:grid-cols-3 gap-4">
-                                <div className="bg-white p-5 rounded-xl shadow-sm border border-stone-100 flex md:block items-center gap-4">
-                                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center shrink-0 md:mb-4">
-                                        <Sun className="text-orange-600" size={20} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-base md:text-lg mb-1 md:mb-2">大理深度慢游</h3>
-                                        <p className="text-stone-600 text-xs md:text-sm">连住4晚不挪窝，古城、喜洲、双廊深度游，确保父母体力。</p>
-                                    </div>
-                                </div>
-                                <div className="bg-white p-5 rounded-xl shadow-sm border border-stone-100 flex md:block items-center gap-4">
-                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0 md:mb-4">
-                                        <Train className="text-blue-600" size={20} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-base md:text-lg mb-1 md:mb-2">人车分流策略</h3>
-                                        <p className="text-stone-600 text-xs md:text-sm">解决7座车行李装载痛点。转场日夫妻自驾运物资，父母高铁享舒适。</p>
-                                    </div>
-                                </div>
-                                <div className="bg-white p-5 rounded-xl shadow-sm border border-stone-100 flex md:block items-center gap-4">
-                                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0 md:mb-4">
-                                        <Hotel className="text-green-600" size={20} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-base md:text-lg mb-1 md:mb-2">顶级住宿体验</h3>
-                                        <p className="text-stone-600 text-xs md:text-sm">古城智能民宿 + 滇池洲际酒店，既有烟火气又有奢享感。</p>
-                                    </div>
-                                </div>
+                        {/* Overview Section */}
+                        <section id="overview" className="scroll-mt-24 animate-fade-in-up delay-100">
+                            <SectionTitle title="行程亮点" icon={Compass} />
+                            <div className="grid md:grid-cols-3 gap-6">
+                                <Card className="bg-[#f5f5f7] md:bg-white"> {/* Apple card style */}
+                                    <Sun className="text-orange-500 mb-4" size={40} />
+                                    <h3 className="text-2xl font-bold mb-2">大理深度慢游</h3>
+                                    <p className="text-stone-500 leading-relaxed text-[1.05em]">
+                                        连住4晚不挪窝。放弃奔波的沙溪，改为古城、喜洲、双廊深度游，确保父母体力充沛。
+                                    </p>
+                                </Card>
+                                <Card>
+                                    <Train className="text-blue-500 mb-4" size={40} />
+                                    <h3 className="text-2xl font-bold mb-2">人车分流策略</h3>
+                                    <p className="text-stone-500 leading-relaxed text-[1.05em]">
+                                        完美解决7座车行李装载痛点。转场日夫妻自驾运物资，父母坐高铁享受舒适旅程。
+                                    </p>
+                                </Card>
+                                <Card>
+                                    <Hotel className="text-green-500 mb-4" size={40} />
+                                    <h3 className="text-2xl font-bold mb-2">顶级住宿体验</h3>
+                                    <p className="text-stone-500 leading-relaxed text-[1.05em]">
+                                        大理住进古城边的全智能民宿，昆明入住滇池旁的洲际酒店，既有烟火气又有奢享感。
+                                    </p>
+                                </Card>
                             </div>
                         </section>
 
-                        {/* 交通策略板块 */}
-                        <section id="logistics" className="scroll-mt-24 bg-gradient-to-br from-slate-50 to-slate-100 p-6 md:p-8 rounded-2xl border border-slate-200">
-                            <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                <Car className="text-blue-700" /> 核心交通接驳
-                            </h2>
-                            <p className="text-slate-600 mb-6 text-xs md:text-sm">针对6人+6个大行李箱的运力挑战，我们设计了“海陆并进”方案。</p>
-
-                            <div className="space-y-6 md:space-y-8">
-                                {/* 抵达 */}
-                                <div className="relative pl-6 md:pl-8 border-l-2 border-slate-300">
-                                    <div className="absolute -left-1.5 md:-left-2 top-0 w-3 h-3 md:w-4 md:h-4 bg-slate-400 rounded-full"></div>
-                                    <h3 className="font-bold text-base md:text-lg text-slate-800">2月15日：多路集结</h3>
-                                    <div className="mt-3 grid md:grid-cols-2 gap-3">
-                                        <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-100">
-                                            <span className="font-bold text-blue-600 block mb-1 text-sm">🚗 女方父母</span>
-                                            <p className="text-xs text-slate-600">驾车满载年货直达大理民宿，卸下重行李。</p>
-                                        </div>
-                                        <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-100">
-                                            <span className="font-bold text-orange-600 block mb-1 text-sm">✈️ 男方父母 & 夫妻</span>
-                                            <p className="text-xs text-slate-600">飞抵昆明/大理，打车前往民宿汇合。</p>
+                        {/* Logistics Section */}
+                        <section id="logistics" className="scroll-mt-24 animate-fade-in-up delay-200">
+                            <SectionTitle title="核心交通" icon={Car} />
+                            <Card className="bg-gradient-to-br from-white to-stone-100 border-none">
+                                <div className="space-y-10">
+                                    <div className="relative pl-8 border-l-4 border-stone-200">
+                                        <div className="absolute -left-[10px] top-1 w-4 h-4 bg-stone-400 rounded-full ring-4 ring-white"></div>
+                                        <h3 className="text-xl font-bold text-[#1d1d1f]">2月15日：多路集结</h3>
+                                        <div className="mt-4 grid md:grid-cols-2 gap-4">
+                                            <div className="bg-white p-5 rounded-2xl shadow-sm">
+                                                <span className="font-bold text-blue-600 block mb-1 text-[0.9em]">🚗 女方父母</span>
+                                                <p className="text-stone-600">驾车满载年货直达大理民宿，卸下重行李。</p>
+                                            </div>
+                                            <div className="bg-white p-5 rounded-2xl shadow-sm">
+                                                <span className="font-bold text-orange-600 block mb-1 text-[0.9em]">✈️ 男方父母 & 夫妻</span>
+                                                <p className="text-stone-600">飞抵昆明/大理，打车前往民宿汇合。</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* 大理驻扎 */}
-                                <div className="relative pl-6 md:pl-8 border-l-2 border-slate-300">
-                                    <div className="absolute -left-1.5 md:-left-2 top-0 w-3 h-3 md:w-4 md:h-4 bg-slate-400 rounded-full"></div>
-                                    <h3 className="font-bold text-base md:text-lg text-slate-800">2月15-18日：大理驻扎期</h3>
-                                    <div className="bg-white p-3 rounded-lg shadow-sm mt-3 border border-slate-100">
-                                        <p className="text-xs md:text-sm text-slate-600">
-                                            <span className="font-bold">短途游玩：</span> 行李不动。7座车坐满6人游览古城周边。
-                                            <br />
-                                            <span className="text-slate-500 mt-1 block">💡 去双廊等稍远的地方，建议叫一辆网约车分流年轻夫妻。</span>
+                                    <div className="relative pl-8 border-l-4 border-stone-200">
+                                        <div className="absolute -left-[10px] top-1 w-4 h-4 bg-stone-400 rounded-full ring-4 ring-white"></div>
+                                        <h3 className="text-xl font-bold text-[#1d1d1f]">2月15-18日：大理驻扎期</h3>
+                                        <p className="mt-2 text-stone-600 leading-relaxed text-[1.05em]">
+                                            <span className="font-bold text-[#1d1d1f]">短途游玩：</span> 行李不动。7座车坐满6人游览古城周边。<br/>
+                                            <span className="text-stone-400 text-[0.9em]">💡 去双廊等稍远的地方，建议叫一辆网约车分流年轻夫妻。</span>
                                         </p>
                                     </div>
-                                </div>
 
-                                {/* 关键转场日 */}
-                                <div className="relative pl-6 md:pl-8 border-l-2 border-blue-500">
-                                    <div className="absolute -left-2 md:-left-2.5 top-0 w-4 h-4 md:w-5 md:h-5 bg-blue-600 rounded-full ring-4 ring-blue-100"></div>
-                                    <h3 className="font-bold text-lg md:text-xl text-blue-800">2月19日：昆明大撤退</h3>
-                                    <div className="mt-4 grid md:grid-cols-2 gap-4">
-                                        <div className="bg-white p-4 rounded-xl border-l-4 border-orange-500 shadow-sm">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Car size={18} className="text-orange-500" />
-                                                <span className="font-bold text-sm md:text-base text-slate-800">A组：后勤运输 (夫妻)</span>
+                                    <div className="relative pl-8 border-l-4 border-blue-500">
+                                        <div className="absolute -left-[11px] top-1 w-5 h-5 bg-blue-600 rounded-full ring-4 ring-blue-100"></div>
+                                        <h3 className="text-2xl font-bold text-blue-700">2月19日：昆明大撤退</h3>
+                                        <div className="mt-6 grid md:grid-cols-2 gap-6">
+                                            <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-100">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <div className="p-2 bg-orange-100 rounded-full text-orange-600"><Car size={20}/></div>
+                                                    <span className="font-bold text-lg text-slate-800">A组：后勤运输 (夫妻)</span>
+                                                </div>
+                                                <ul className="text-stone-600 space-y-2 text-[0.95em]">
+                                                    <li>📦 <span className="font-bold text-orange-600">放倒第三排，装所有行李</span></li>
+                                                    <li>⏱ 自驾约 4.5 小时</li>
+                                                    <li>✨ 享受二人公路旅行</li>
+                                                </ul>
                                             </div>
-                                            <ul className="text-xs md:text-sm text-slate-600 space-y-1">
-                                                <li>📦 <span className="font-bold text-orange-600">放倒第三排，装所有行李</span></li>
-                                                <li>⏱ 自驾约 4.5 小时</li>
-                                                <li>✨ 享受二人公路旅行</li>
-                                            </ul>
-                                        </div>
 
-                                        <div className="bg-white p-4 rounded-xl border-l-4 border-blue-500 shadow-sm">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Train size={18} className="text-blue-500" />
-                                                <span className="font-bold text-sm md:text-base text-slate-800">B组：享乐团 (父母)</span>
+                                            <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <div className="p-2 bg-blue-100 rounded-full text-blue-600"><Train size={20}/></div>
+                                                    <span className="font-bold text-lg text-slate-800">B组：享乐团 (父母)</span>
+                                                </div>
+                                                <ul className="text-stone-600 space-y-2 text-[0.95em]">
+                                                    <li>🎒 轻装上阵，大理站出发</li>
+                                                    <li>⏱ 高铁约 2 小时</li>
+                                                    <li>✨ 平稳舒适，车上休息</li>
+                                                </ul>
                                             </div>
-                                            <ul className="text-xs md:text-sm text-slate-600 space-y-1">
-                                                <li>🎒 轻装上阵，大理站出发</li>
-                                                <li>⏱ 高铁约 2 小时</li>
-                                                <li>✨ 平稳舒适，车上休息</li>
-                                            </ul>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Card>
                         </section>
 
-                        {/* 每日行程板块 */}
-                        <section id="itinerary" className="scroll-mt-24">
-                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-4 flex items-center gap-2">
-                                <Calendar className="text-red-700" /> 每日详细行程
-                            </h2>
+                        {/* Itinerary Section */}
+                        <section id="itinerary" className="scroll-mt-24 animate-fade-in-up delay-300">
+                            <SectionTitle title="每日行程" icon={Calendar} />
 
-                            {/* 日历导航模块 */}
-                            <div className="sticky top-16 md:top-20 z-40 bg-stone-50 pt-2 pb-4 -mx-4 px-4 md:mx-0 md:px-0 mb-4 overflow-x-auto no-scrollbar">
-                                <div className="flex gap-2 md:gap-3 min-w-max">
+                            {/* Calendar Bar */}
+                            <div className="sticky top-16 z-30 bg-[#f5f5f7]/95 backdrop-blur-md pt-2 pb-6 mb-4 -mx-6 px-6 overflow-x-auto no-scrollbar">
+                                <div className="flex gap-3 min-w-max">
                                     {CALENDAR_DAYS.map((day) => (
                                         <button
                                             key={day.id}
                                             onClick={() => scrollToDay(day.id)}
-                                            className={`flex flex-col items-center justify-center p-2 rounded-lg border min-w-[4.5rem] transition-all
+                                            className={`flex flex-col items-center justify-center p-3 rounded-2xl min-w-[5.5rem] transition-all duration-300
                                                 ${activeDay === day.id 
-                                                    ? 'bg-red-700 text-white border-red-700 shadow-md scale-105' 
-                                                    : 'bg-white text-stone-600 border-stone-200 hover:border-red-300 hover:bg-red-50'}`}
+                                                    ? 'bg-[#1d1d1f] text-white shadow-lg scale-105' 
+                                                    : 'bg-white text-stone-500 hover:bg-white hover:shadow-md'}`}
                                         >
-                                            <span className="text-[10px] font-medium opacity-80">{day.weekday}</span>
-                                            <span className="text-sm font-bold my-0.5">{day.date}</span>
-                                            <span className="text-[10px] opacity-70">{day.lunar}</span>
+                                            <span className="text-[0.75em] font-bold uppercase tracking-wider opacity-80">{day.weekday}</span>
+                                            <span className="text-[1.4em] font-bold my-0.5 leading-none">{day.date}</span>
+                                            <span className="text-[0.75em] opacity-60 font-medium">{day.lunar}</span>
                                         </button>
                                     ))}
                                 </div>
                             </div>
                             
-                            <div className="space-y-6">
-                                {/* Day 1 */}
-                                <div id="day-1" className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-100 scroll-mt-32">
-                                    <div className="bg-stone-100 px-4 md:px-6 py-3 border-b border-stone-200 flex justify-between items-center">
-                                        <h3 className="font-bold text-stone-800 text-sm md:text-base">Day 1 · 2.15 周日 (腊月廿八)</h3>
-                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">初识大理</span>
-                                    </div>
-                                    <div className="p-4 md:p-6">
-                                        <div className="space-y-4">
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">全天</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">各路人马在大理南门民宿汇合，办理入住，休整。</div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">傍晚</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">步行前往<AttractionLink name="大理古城南门" />，打卡拍照，漫步复兴路。</div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">晚餐</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">南门附近品尝<span className="font-bold">酸辣鱼</span>或<span className="font-bold">粑肉饵丝</span>。</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Day 2 */}
-                                <div id="day-2" className="bg-white rounded-xl shadow-sm overflow-hidden border border-red-100 scroll-mt-32">
-                                    <div className="bg-red-50 px-4 md:px-6 py-3 border-b border-red-100 flex justify-between items-center">
-                                        <h3 className="font-bold text-red-900 text-sm md:text-base">Day 2 · 2.16 周一 (除夕)</h3>
-                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-red-600 border border-red-200">春节团圆</span>
-                                    </div>
-                                    <div className="p-4 md:p-6">
-                                        <div className="space-y-4">
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">
-                                                    驾车前往<AttractionLink name="感通索道" />（更平缓）。索道上<AttractionLink name="苍山" />俯瞰洱海，下山步行至<AttractionLink name="寂照庵" />吃网红素斋。
+                            <div className="space-y-8">
+                                {/* Day Cards */}
+                                {[
+                                    { id: 1, date: "2.15 周日 (腊月廿八)", title: "初识大理", steps: [
+                                        { time: "全天", content: "各路人马在大理南门民宿汇合，办理入住，休整。" },
+                                        { time: "傍晚", content: <span>步行前往<AttractionLink name="大理古城南门" />，打卡拍照，漫步复兴路。</span> },
+                                        { time: "晚餐", content: "南门附近品尝大理酸辣鱼或粑肉饵丝。" }
+                                    ]},
+                                    { id: 2, date: "2.16 周一 (除夕)", title: "春节团圆", color: "red", steps: [
+                                        { time: "上午", content: <span>驾车前往<AttractionLink name="感通索道" />。索道上<AttractionLink name="苍山" />俯瞰洱海，下山步行至<AttractionLink name="寂照庵" />吃网红素斋。</span> },
+                                        { time: "下午", content: "回民宿午休，贴春联，准备过年。" },
+                                        { time: "晚上", content: "吃年夜饭（需提前预订），饭后回民宿看春晚、守岁。" }
+                                    ]},
+                                    { id: 3, date: "2.17 周二 (初一)", title: "环海祈福", steps: [
+                                        { time: "上午", content: <span>前往<AttractionLink name="崇圣寺三塔" />祈福，在“聚影池”拍三塔倒影全家福。</span> },
+                                        { time: "中午", content: <span>前往<AttractionLink name="喜洲古镇" />，看严家大院，打卡油菜花田，吃喜洲粑粑。</span> },
+                                        { time: "下午", content: <span>绕行至<AttractionLink name="双廊古镇" />，找家临海咖啡馆看苍洱日落。</span> }
+                                    ]},
+                                    { id: 4, date: "2.18 周三 (初二)", title: "非遗体验", steps: [
+                                        { time: "上午", content: <span>前往<AttractionLink name="周城" keyword="周城扎染" />。全家动手制作扎染作品，作为春节纪念。</span> },
+                                        { time: "下午", content: <span>前往<AttractionLink name="洱海生态廊道" keyword="洱海生态廊道 阳南溪" />（阳南溪入口）。父母坐观光车，夫妻骑行。</span> },
+                                        { time: "晚上", content: <span className="font-bold text-red-600">回民宿晚餐，提前打包好所有行李，准备明天的分流转场！</span> }
+                                    ]},
+                                    { id: 5, date: "2.19 周四 (初三)", title: "转场昆明", color: "blue", steps: [
+                                        { time: "12:30", content: <span><span className="font-bold text-orange-600">[A组夫妻]</span> 搬运所有行李自驾出发。<br/><span className="font-bold text-blue-600">[B组父母]</span> 打车去大理站，坐高铁去昆明。</span> },
+                                        { time: "17:00", content: "全员在昆明洲际酒店汇合。" },
+                                        { time: "傍晚", content: <span>步行至酒店对面的<AttractionLink name="海埂大坝" />，投喂红嘴鸥。</span> }
+                                    ]},
+                                    { id: 6, date: "2.20 周五 (初四)", title: "花都漫游", steps: [
+                                        { time: "上午", content: <span>游览<AttractionLink name="云南民族村" />（酒店旁步行即达）。</span> },
+                                        { time: "下午", content: <span>驾车（空车）前往<AttractionLink name="斗南花市" />。疯狂采购鲜花，直接放车里带走。</span> },
+                                        { time: "晚上", content: <span>去<AttractionLink name="昆明老街" />/<AttractionLink name="南强街" />，感受省会夜景美食。</span> }
+                                    ]},
+                                    { id: 7, date: "2.21 周六 (初五)", title: "完美收官", steps: [
+                                        { time: "上午", content: "享受洲际酒店豪华早餐。" },
+                                        { time: "13:00", content: <span className="font-bold text-blue-600">女方父母驾驶装满鲜花的7座车回重庆。</span> },
+                                        { time: "15:00", content: <span className="font-bold text-orange-600">男方父母 & 夫妻打车去机场返程。</span> }
+                                    ]}
+                                ].map((day) => (
+                                    <div id={`day-${day.id}`} key={day.id} className="scroll-mt-40">
+                                        <Card className="border-0 ring-1 ring-black/5 hover:ring-black/10">
+                                            <div className="flex justify-between items-center mb-6 pb-4 border-b border-stone-100">
+                                                <div>
+                                                    <h3 className="text-xl font-bold text-[#1d1d1f]">{day.date}</h3>
                                                 </div>
+                                                <Badge color={day.color || "stone"}>{day.title}</Badge>
                                             </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">下午</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">回民宿午休，贴春联，准备过年。</div>
+                                            <div className="space-y-6">
+                                                {day.steps.map((step, idx) => (
+                                                    <div key={idx} className="flex gap-4">
+                                                        <div className="w-16 shrink-0 text-right font-bold text-stone-400 text-[0.9em] pt-1">{step.time}</div>
+                                                        <div className="text-stone-700 text-[1.05em] leading-relaxed pb-4 border-l-2 border-stone-100 pl-4 relative">
+                                                            <div className="absolute -left-[7px] top-2 w-3 h-3 bg-stone-200 rounded-full border-2 border-white"></div>
+                                                            {step.content}
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">晚上</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">吃<span className="font-bold text-red-600">年夜饭</span>（需提前预订），饭后回民宿看春晚、守岁。</div>
-                                            </div>
-                                        </div>
+                                        </Card>
                                     </div>
-                                </div>
-
-                                {/* Day 3 */}
-                                <div id="day-3" className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-100 scroll-mt-32">
-                                    <div className="bg-stone-100 px-4 md:px-6 py-3 border-b border-stone-200 flex justify-between items-center">
-                                        <h3 className="font-bold text-stone-800 text-sm md:text-base">Day 3 · 2.17 周二 (初一)</h3>
-                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">环海祈福</span>
-                                    </div>
-                                    <div className="p-4 md:p-6">
-                                        <div className="space-y-4">
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">
-                                                    前往<AttractionLink name="崇圣寺三塔" />祈福，在“<AttractionLink name="聚影池" />”拍三塔倒影全家福。
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">中午</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">
-                                                    前往<AttractionLink name="喜洲古镇" />，看<AttractionLink name="严家大院" />，打卡油菜花田，吃喜洲粑粑。
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">下午</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">
-                                                    绕行至<AttractionLink name="双廊古镇" />，找家临海咖啡馆看苍洱日落。
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Day 4 */}
-                                <div id="day-4" className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-100 scroll-mt-32">
-                                    <div className="bg-stone-100 px-4 md:px-6 py-3 border-b border-stone-200 flex justify-between items-center">
-                                        <h3 className="font-bold text-stone-800 text-sm md:text-base">Day 4 · 2.18 周三 (初二)</h3>
-                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">非遗体验</span>
-                                    </div>
-                                    <div className="p-4 md:p-6">
-                                        <div className="space-y-4">
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">
-                                                    前往<AttractionLink name="周城" keyword="周城扎染" />。全家动手制作扎染作品，作为春节纪念。
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">下午</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">
-                                                    前往<AttractionLink name="洱海生态廊道" keyword="洱海生态廊道 阳南溪" />（阳南溪入口）。父母坐观光车，夫妻骑行。
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">晚上</div>
-                                                <div className="text-stone-700 text-xs md:text-sm font-bold text-red-600">
-                                                    回民宿晚餐，提前打包好所有行李，准备明天的分流转场！
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Day 5 */}
-                                <div id="day-5" className="bg-white rounded-xl shadow-sm overflow-hidden border border-blue-100 scroll-mt-32">
-                                    <div className="bg-blue-50 px-4 md:px-6 py-3 border-b border-blue-100 flex justify-between items-center">
-                                        <h3 className="font-bold text-blue-900 text-sm md:text-base">Day 5 · 2.19 周四 (初三)</h3>
-                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-blue-600 border border-blue-200">转场昆明</span>
-                                    </div>
-                                    <div className="p-4 md:p-6">
-                                        <div className="space-y-4">
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">12:30</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">
-                                                    <span className="font-bold text-orange-600">[A组夫妻]</span> 搬运所有行李自驾出发。<br/>
-                                                    <span className="font-bold text-blue-600">[B组父母]</span> 打车去大理站，坐高铁去昆明。
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">17:00</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">全员在<span className="font-bold">昆明洲际酒店</span>汇合。</div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">傍晚</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">步行至酒店对面的<AttractionLink name="海埂大坝" />，投喂红嘴鸥。</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Day 6 */}
-                                <div id="day-6" className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-100 scroll-mt-32">
-                                    <div className="bg-stone-100 px-4 md:px-6 py-3 border-b border-stone-200 flex justify-between items-center">
-                                        <h3 className="font-bold text-stone-800 text-sm md:text-base">Day 6 · 2.20 周五 (初四)</h3>
-                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">花都漫游</span>
-                                    </div>
-                                    <div className="p-4 md:p-6">
-                                        <div className="space-y-4">
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">游览<AttractionLink name="云南民族村" />（酒店旁步行即达）。</div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">下午</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">
-                                                    驾车（空车）前往<AttractionLink name="斗南花市" />。疯狂采购鲜花，直接放车里带走。
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">晚上</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">去<AttractionLink name="昆明老街" />/<AttractionLink name="南强街" />，感受省会夜景美食。</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Day 7 */}
-                                <div id="day-7" className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-100 scroll-mt-32">
-                                    <div className="bg-stone-100 px-4 md:px-6 py-3 border-b border-stone-200 flex justify-between items-center">
-                                        <h3 className="font-bold text-stone-800 text-sm md:text-base">Day 7 · 2.21 周六 (初五)</h3>
-                                        <span className="text-[10px] md:text-xs font-medium px-2 py-1 bg-white rounded text-stone-600">完美收官</span>
-                                    </div>
-                                    <div className="p-4 md:p-6">
-                                        <div className="space-y-4">
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">上午</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">享受洲际酒店豪华早餐。</div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">13:00</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">
-                                                    <span className="font-bold text-blue-600">女方父母</span> 驾驶装满鲜花的7座车回重庆。
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <div className="mt-0.5 min-w-[3rem] text-xs md:text-sm font-bold text-stone-400">15:00</div>
-                                                <div className="text-stone-700 text-xs md:text-sm">
-                                                    <span className="font-bold text-orange-600">男方父母 & 夫妻</span> 打车去机场返程。
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
                         </section>
 
-                        {/* 住宿推荐 (Moved up) */}
+                        {/* Accommodations (Moved Up) */}
                         <section id="hotels" className="scroll-mt-24">
-                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
-                                <Hotel className="text-red-700" /> 住宿精选
-                            </h2>
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                                    <div className="p-5">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h3 className="font-bold text-base md:text-lg">大理故里·全智能度假民宿</h3>
-                                            <span className="bg-stone-100 text-stone-600 text-[10px] md:text-xs px-2 py-1 rounded shrink-0">古城南门店</span>
-                                        </div>
-                                        <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
-                                            <p className="text-stone-500 text-xs md:text-sm">一塔路22号 (连住4晚)</p>
-                                            <a 
-                                                href="https://j.map.baidu.com/d0/DuUk" 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-1 text-xs md:text-sm text-blue-600 hover:text-blue-800 font-medium bg-blue-50 px-2 py-0.5 rounded transition-colors"
-                                            >
-                                                <MapPin size={12} /> 百度导航
-                                            </a>
-                                        </div>
-                                        <div className="flex gap-2 flex-wrap">
-                                            <span className="text-[10px] md:text-xs bg-red-50 text-red-600 px-2 py-1 rounded">车可直达</span>
-                                            <span className="text-[10px] md:text-xs bg-red-50 text-red-600 px-2 py-1 rounded">智能家居</span>
-                                            <span className="text-[10px] md:text-xs bg-red-50 text-red-600 px-2 py-1 rounded">离古城近</span>
-                                        </div>
+                            <SectionTitle title="住宿精选" icon={Hotel} />
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <Card>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h3 className="text-2xl font-bold text-[#1d1d1f]">大理故里民宿</h3>
+                                        <Badge color="stone">古城南门店</Badge>
                                     </div>
-                                </div>
+                                    <div className="mb-4 flex flex-wrap items-center gap-3">
+                                        <p className="text-stone-500 font-medium">一塔路22号 (连住4晚)</p>
+                                        <a href="https://j.map.baidu.com/d0/DuUk" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[0.85em] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors">
+                                            <Navigation size={12} /> 导航
+                                        </a>
+                                    </div>
+                                    <div className="flex gap-2 flex-wrap">
+                                        <Badge color="red">车可直达</Badge>
+                                        <Badge color="red">智能家居</Badge>
+                                        <Badge color="red">离古城近</Badge>
+                                    </div>
+                                </Card>
 
-                                <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                                    <div className="p-5">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h3 className="font-bold text-base md:text-lg">昆明洲际酒店 (待定)</h3>
-                                            <span className="bg-stone-100 text-stone-600 text-[10px] md:text-xs px-2 py-1 rounded shrink-0">度假区</span>
-                                        </div>
-                                        <p className="text-stone-500 text-xs md:text-sm mb-3">滇池国家旅游度假区 (连住2晚)</p>
-                                        <div className="flex gap-2 flex-wrap">
-                                            <span className="text-[10px] md:text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">出门即海鸥</span>
-                                            <span className="text-[10px] md:text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">停车方便</span>
-                                            <span className="text-[10px] md:text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">奢华舒适</span>
-                                        </div>
+                                <Card>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h3 className="text-2xl font-bold text-[#1d1d1f]">昆明洲际酒店</h3>
+                                        <Badge color="stone">待定</Badge>
                                     </div>
-                                </div>
+                                    <p className="text-stone-500 font-medium mb-4">滇池国家旅游度假区 (连住2晚)</p>
+                                    <div className="flex gap-2 flex-wrap">
+                                        <Badge color="blue">出门即海鸥</Badge>
+                                        <Badge color="blue">停车方便</Badge>
+                                        <Badge color="blue">奢华舒适</Badge>
+                                    </div>
+                                </Card>
                             </div>
                         </section>
 
-                        {/* 景点攻略 (Updated) */}
+                        {/* Attractions */}
                         <section id="attractions" className="scroll-mt-24">
-                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
-                                <Mountain className="text-red-700" /> 景点攻略
-                            </h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <SectionTitle title="景点攻略" icon={Mountain} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {ATTRACTIONS.map((item, idx) => (
-                                    <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-stone-100 flex flex-col justify-between h-full">
+                                    <Card key={idx} className="flex flex-col justify-between h-full hover:-translate-y-1 transition-transform duration-300">
                                         <div>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h4 className="font-bold text-stone-800 text-base">
+                                            <div className="flex justify-between items-start mb-3">
+                                                <h4 className="text-xl font-bold text-[#1d1d1f]">
                                                     <AttractionLink name={item.name} keyword={item.mapKeyword} />
                                                 </h4>
                                             </div>
-                                            <p className="text-xs text-stone-600 leading-relaxed mb-3">{item.desc}</p>
+                                            <p className="text-stone-500 leading-relaxed text-[0.95em] mb-4">{item.desc}</p>
                                         </div>
                                         
-                                        <div className="mt-auto space-y-3">
-                                            <div className="bg-orange-50 p-2 rounded-lg border border-orange-100">
-                                                <p className="text-[10px] md:text-xs text-orange-800 font-medium flex gap-1">
+                                        <div className="mt-auto space-y-4">
+                                            <div className="bg-[#fff9f9] p-3 rounded-2xl border border-red-100/50">
+                                                <p className="text-[0.85em] text-red-800 font-medium flex gap-2">
                                                     <span className="shrink-0">💡</span>
                                                     <span>{item.tips}</span>
                                                 </p>
@@ -766,39 +571,37 @@
                                                 href={item.navLink}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="w-full flex items-center justify-center gap-1.5 text-xs text-blue-600 hover:text-white hover:bg-blue-600 font-medium bg-blue-50 py-2 rounded-lg transition-all"
+                                                className="w-full flex items-center justify-center gap-2 text-[0.9em] font-semibold text-white bg-[#007aff] hover:bg-[#0071eb] py-3 rounded-xl transition-all shadow-md shadow-blue-200"
                                             >
-                                                <Navigation size={12} /> 
-                                                百度导航
+                                                <Navigation size={16} /> 
+                                                一键导航
                                             </a>
                                         </div>
-                                    </div>
+                                    </Card>
                                 ))}
                             </div>
                         </section>
 
-                        {/* 备忘录 */}
+                        {/* Tips */}
                         <section id="tips" className="scroll-mt-24">
-                            <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
-                                <AlertCircle className="text-red-700" /> 行前备忘录
-                            </h2>
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 md:p-6">
-                                <ul className="space-y-4">
-                                    <li className="flex items-start md:items-center gap-3">
-                                        <span className="font-bold text-red-600 shrink-0 text-sm">1月15日前</span>
-                                        <span className="text-xs md:text-sm text-stone-700">预订大理古城南门附近的年夜饭包间。</span>
+                            <SectionTitle title="行前备忘" icon={AlertCircle} />
+                            <div className="bg-[#fff9f9] border border-red-100 rounded-3xl p-8">
+                                <ul className="space-y-6">
+                                    <li className="flex items-start md:items-center gap-4">
+                                        <span className="font-bold text-red-600 shrink-0 text-[1.1em]">1月15日前</span>
+                                        <span className="text-stone-700 text-[1.05em]">预订大理古城南门附近的年夜饭包间。</span>
                                     </li>
-                                    <li className="flex items-start md:items-center gap-3">
-                                        <span className="font-bold text-red-600 shrink-0 text-sm">2月05日前</span>
-                                        <span className="text-xs md:text-sm text-stone-700">购买2月19日“大理→昆明”的高铁票（4张）。</span>
+                                    <li className="flex items-start md:items-center gap-4">
+                                        <span className="font-bold text-red-600 shrink-0 text-[1.1em]">2月05日前</span>
+                                        <span className="text-stone-700 text-[1.05em]">购买2月19日“大理→昆明”的高铁票（4张）。</span>
                                     </li>
-                                    <li className="flex items-start md:items-center gap-3">
-                                        <span className="font-bold text-stone-800 shrink-0 text-sm">穿衣指南</span>
-                                        <span className="text-xs md:text-sm text-stone-700">洋葱式穿衣。早晚温差大，必须带薄羽绒服。</span>
+                                    <li className="flex items-start md:items-center gap-4">
+                                        <span className="font-bold text-[#1d1d1f] shrink-0 text-[1.1em]">穿衣指南</span>
+                                        <span className="text-stone-700 text-[1.05em]">洋葱式穿衣。早晚温差大，必须带薄羽绒服。</span>
                                     </li>
-                                    <li className="flex items-start md:items-center gap-3">
-                                        <span className="font-bold text-stone-800 shrink-0 text-sm">驾驶提示</span>
-                                        <span className="text-xs md:text-sm text-stone-700">出发前检查7座车胎压。大理回昆明段夫妻轮换驾驶。</span>
+                                    <li className="flex items-start md:items-center gap-4">
+                                        <span className="font-bold text-[#1d1d1f] shrink-0 text-[1.1em]">驾驶提示</span>
+                                        <span className="text-stone-700 text-[1.05em]">出发前检查7座车胎压。大理回昆明段夫妻轮换驾驶。</span>
                                     </li>
                                 </ul>
                             </div>
@@ -806,19 +609,19 @@
 
                     </main>
 
-                    {/* 页脚 */}
-                    <footer className="bg-stone-900 text-stone-400 py-12 text-center mt-8 pb-24 md:pb-12">
-                        <p className="mb-2 text-sm">2026 马年大吉 · 阖家欢乐</p>
-                        <p className="text-xs opacity-60">资深家庭旅行定制师为您呈现</p>
+                    {/* Footer */}
+                    <footer className="bg-[#f5f5f7] border-t border-stone-200 text-stone-400 py-16 text-center">
+                        <p className="mb-3 text-[1.1em] font-medium text-stone-500">2026 马年大吉 · 阖家欢乐</p>
+                        <p className="text-[0.8em] opacity-60">Made with ❤️ for Family</p>
                     </footer>
 
-                    {/* 回到顶部按钮 */}
+                    {/* Back to Top */}
                     {showScrollTop && (
                         <button 
                             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                            className="fixed bottom-20 md:bottom-8 right-4 md:right-8 bg-red-700/90 backdrop-blur text-white p-3 rounded-full shadow-lg hover:bg-red-800 transition-colors z-40"
+                            className="fixed bottom-24 md:bottom-10 right-6 bg-[#1d1d1f]/80 backdrop-blur text-white p-4 rounded-full shadow-2xl hover:bg-black transition-all z-40 transform hover:scale-110"
                         >
-                            <ArrowRight className="transform -rotate-90" size={20} />
+                            <ArrowRight className="transform -rotate-90" size={24} />
                         </button>
                     )}
                 </div>
