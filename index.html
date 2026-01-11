@@ -34,6 +34,14 @@
         .pb-safe {
             padding-bottom: env(safe-area-inset-bottom);
         }
+        /* 微信遮罩层动画 */
+        @keyframes float-arrow {
+            0%, 100% { transform: translate(0, 0) rotate(-45deg); }
+            50% { transform: translate(5px, -5px) rotate(-45deg); }
+        }
+        .animate-float-arrow {
+            animation: float-arrow 1.5s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="bg-stone-50">
@@ -74,6 +82,35 @@
         const MapIcon = (props) => <IconBase {...props}><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></IconBase>;
         const Compass = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></IconBase>;
 
+        // --- 微信遮罩组件 ---
+        const WeChatMask = () => (
+            <div className="fixed inset-0 z-[100] bg-slate-900/95 flex flex-col items-center pt-16 px-8 text-center text-white h-screen w-screen overflow-hidden">
+                {/* 指向右上角的箭头 */}
+                <div className="absolute top-4 right-8">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white animate-float-arrow">
+                        <line x1="7" y1="17" x2="17" y2="7"></line>
+                        <polyline points="7 7 17 7 17 17"></polyline>
+                    </svg>
+                </div>
+                
+                <div className="mt-20 space-y-8 animate-fade-in">
+                    <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-red-900/50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold tracking-wide">请在浏览器打开</h2>
+                    <div className="text-lg text-slate-300 leading-relaxed space-y-2">
+                        <p>为了获得完整的路书体验</p>
+                        <p>请点击屏幕右上角 <span className="font-bold text-white text-xl mx-1">···</span></p>
+                        <p>选择 <span className="text-white font-bold bg-white/20 px-2 py-1 rounded">在浏览器打开</span></p>
+                    </div>
+                </div>
+            </div>
+        );
+
         // --- 菜单配置 ---
         const MENU_ITEMS = [
             { id: 'overview', label: '概览', icon: Compass },
@@ -85,14 +122,22 @@
 
         // --- 主应用组件 ---
         const App = () => {
+            // 微信环境检测状态
+            const [isWeChat, setIsWeChat] = useState(false);
             const [activeTab, setActiveTab] = useState('overview');
             const [showScrollTop, setShowScrollTop] = useState(false);
 
+            // 初始化检测 UserAgent
+            useEffect(() => {
+                const ua = navigator.userAgent.toLowerCase();
+                // 简单的微信环境判断
+                if (/micromessenger/i.test(ua)) {
+                    setIsWeChat(true);
+                }
+            }, []);
+
             useEffect(() => {
                 const handleScroll = () => {
-                    // 监听滚动位置，设置 activeTab
-                    // 简单的逻辑：根据滚动位置判断当前主要显示哪个section
-                    // 这里仅处理回到顶部按钮的显示
                     if (window.scrollY > 300) {
                         setShowScrollTop(true);
                     } else {
@@ -106,13 +151,17 @@
             const scrollToSection = (id) => {
                 const element = document.getElementById(id);
                 if (element) {
-                    // 考虑到固定导航栏的高度，进行偏移
                     const yOffset = -80; 
                     const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
                     window.scrollTo({top: y, behavior: 'smooth'});
                     setActiveTab(id);
                 }
             };
+
+            // 如果是微信环境，直接返回遮罩，不渲染后续内容
+            if (isWeChat) {
+                return <WeChatMask />;
+            }
 
             return (
                 <div className="min-h-screen bg-stone-50 text-stone-800 font-sans pb-20 md:pb-0">
@@ -141,7 +190,7 @@
                         </div>
                     </nav>
 
-                    {/* 移动端 底部导航栏 (新增) */}
+                    {/* 移动端 底部导航栏 */}
                     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-50 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                         <div className="flex justify-around items-center h-16 px-1">
                             {MENU_ITEMS.map((item) => (
@@ -499,7 +548,17 @@
                                             <h3 className="font-bold text-base md:text-lg">大理故里·全智能度假民宿</h3>
                                             <span className="bg-stone-100 text-stone-600 text-[10px] md:text-xs px-2 py-1 rounded shrink-0">古城南门店</span>
                                         </div>
-                                        <p className="text-stone-500 text-xs md:text-sm mb-3">一塔路22号 (连住4晚)</p>
+                                        <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+                                            <p className="text-stone-500 text-xs md:text-sm">一塔路22号 (连住4晚)</p>
+                                            <a 
+                                                href="https://j.map.baidu.com/d0/DuUk" 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 text-xs md:text-sm text-blue-600 hover:text-blue-800 font-medium bg-blue-50 px-2 py-0.5 rounded transition-colors"
+                                            >
+                                                <MapPin size={12} /> 百度导航
+                                            </a>
+                                        </div>
                                         <div className="flex gap-2 flex-wrap">
                                             <span className="text-[10px] md:text-xs bg-red-50 text-red-600 px-2 py-1 rounded">车可直达</span>
                                             <span className="text-[10px] md:text-xs bg-red-50 text-red-600 px-2 py-1 rounded">智能家居</span>
@@ -582,7 +641,7 @@
                     {/* 页脚 */}
                     <footer className="bg-stone-900 text-stone-400 py-12 text-center mt-8 pb-24 md:pb-12">
                         <p className="mb-2 text-sm">2026 马年大吉 · 阖家欢乐</p>
-                        <p className="text-xs opacity-60">资深家庭旅行定制师笙岚为您呈现</p>
+                        <p className="text-xs opacity-60">资深家庭旅行定制师为您呈现</p>
                     </footer>
 
                     {/* 回到顶部按钮 */}
@@ -603,4 +662,3 @@
     </script>
 </body>
 </html>
-
