@@ -6,6 +6,22 @@
     <title>2026云南春节全家福路书</title>
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 配置 Tailwind 以支持 class 模式的暗黑模式 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        stone: {
+                            850: '#1c1c1e', // Apple dark background
+                            900: '#151516',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <!-- 引入 React 和 ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -24,7 +40,13 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f5f5f7; /* Apple light gray background */
             color: #1d1d1f; /* Apple text black */
-            transition: font-size 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease, font-size 0.3s ease;
+        }
+
+        /* Dark mode overrides for body handled via React state class */
+        .dark body {
+            background-color: #000000;
+            color: #f5f5f7;
         }
 
         /* Hide scrollbar for clean look but allow scrolling */
@@ -63,7 +85,7 @@
         }
     </style>
 </head>
-<body>
+<body class="bg-stone-50 dark:bg-black transition-colors duration-300">
     <div id="root"></div>
 
     <script type="text/babel">
@@ -82,6 +104,7 @@
         const AlertCircle = (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></IconBase>;
         const CheckCircle = (p) => <IconBase {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></IconBase>;
         const Sun = (p) => <IconBase {...p}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></IconBase>;
+        const Moon = (p) => <IconBase {...p}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></IconBase>;
         const ArrowRight = (p) => <IconBase {...p}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></IconBase>;
         const Compass = (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></IconBase>;
         const Search = (p) => <IconBase {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></IconBase>;
@@ -92,8 +115,8 @@
         // --- Components ---
 
         const SectionTitle = ({ title, icon: Icon }) => (
-            <h2 className="text-3xl md:text-4xl font-semibold text-[#1d1d1f] mb-8 flex items-center gap-3 tracking-tight">
-                {Icon && <Icon className="text-red-600" size={32} />}
+            <h2 className="text-3xl md:text-4xl font-semibold text-[#1d1d1f] dark:text-stone-100 mb-8 flex items-center gap-3 tracking-tight transition-colors">
+                {Icon && <Icon className="text-red-600 dark:text-red-500" size={32} />}
                 {title}
             </h2>
         );
@@ -105,7 +128,7 @@
                     href={`https://www.baidu.com/s?wd=${encodeURIComponent(searchKeyword)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-semibold text-red-600 hover:underline hover:text-red-700 transition-colors"
+                    className="inline-flex items-center gap-1 font-semibold text-red-600 dark:text-red-400 hover:underline hover:text-red-700 dark:hover:text-red-300 transition-colors"
                     title={`点击百度搜索"${searchKeyword}"`}
                     onClick={(e) => e.stopPropagation()} 
                 >
@@ -116,20 +139,20 @@
         };
 
         const Card = ({ children, className = "" }) => (
-            <div className={`bg-white rounded-3xl p-6 md:p-8 shadow-sm hover:shadow-xl transition-shadow duration-300 border border-white/50 ${className}`}>
+            <div className={`bg-white dark:bg-[#1c1c1e] rounded-3xl p-6 md:p-8 shadow-sm hover:shadow-xl dark:shadow-none dark:border-stone-800 transition-all duration-300 border border-white/50 dark:border-stone-800/50 ${className}`}>
                 {children}
             </div>
         );
 
         const Badge = ({ children, color = "stone" }) => {
             const colors = {
-                red: "bg-red-100 text-red-700",
-                blue: "bg-blue-100 text-blue-700",
-                orange: "bg-orange-100 text-orange-700",
-                stone: "bg-stone-100 text-stone-600",
+                red: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+                blue: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+                orange: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+                stone: "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300",
             };
             return (
-                <span className={`text-[0.75em] font-medium px-2.5 py-1 rounded-full ${colors[color] || colors.stone}`}>
+                <span className={`text-[0.75em] font-medium px-2.5 py-1 rounded-full transition-colors ${colors[color] || colors.stone}`}>
                     {children}
                 </span>
             );
@@ -199,35 +222,45 @@
             const [activeDay, setActiveDay] = useState(null);
             const [showScrollTop, setShowScrollTop] = useState(false);
             const [fontScale, setFontScale] = useState(1);
+            const [isDarkMode, setIsDarkMode] = useState(false);
             
-            // Ref for controlling scroll interaction
             const isManualScrolling = useRef(false);
             const scrollTimeout = useRef(null);
 
             useEffect(() => {
                 const ua = navigator.userAgent.toLowerCase();
                 if (/micromessenger/i.test(ua)) setIsWeChat(true);
+                
+                // Check system preference for dark mode
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setIsDarkMode(true);
+                }
             }, []);
+
+            // Apply dark mode class to html element
+            useEffect(() => {
+                if (isDarkMode) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }, [isDarkMode]);
 
             // Scroll Spy Logic for Calendar
             useEffect(() => {
                 const observerOptions = {
                     root: null,
-                    // Check intersection near the top of the viewport (offset by header + calendar bar)
-                    // -180px top margin to account for sticky headers, -60% bottom to focus on top part of screen
                     rootMargin: '-180px 0px -60% 0px',
                     threshold: 0
                 };
 
                 const observerCallback = (entries) => {
-                    if (isManualScrolling.current) return; // Skip if user clicked a button
+                    if (isManualScrolling.current) return;
 
                     entries.forEach((entry) => {
                         if (entry.isIntersecting) {
                             const dayId = parseInt(entry.target.id.split('-')[1]);
                             setActiveDay(dayId);
-                            
-                            // Auto scroll horizontal calendar strip to keep active day in view
                             const calendarButton = document.getElementById(`calendar-btn-${dayId}`);
                             if (calendarButton) {
                                 calendarButton.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -260,6 +293,10 @@
                 });
             };
 
+            const toggleDarkMode = () => {
+                setIsDarkMode(prev => !prev);
+            };
+
             const getFontSizeLabel = () => {
                 if (fontScale === 1) return "标准";
                 if (fontScale === 1.2) return "大号";
@@ -277,7 +314,6 @@
             };
 
             const scrollToDay = (dayId) => {
-                // Set manual scrolling flag
                 isManualScrolling.current = true;
                 setActiveDay(dayId);
 
@@ -288,7 +324,6 @@
                     window.scrollTo({top: y, behavior: 'smooth'});
                 }
 
-                // Reset flag after scrolling animation (approx 1s)
                 if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
                 scrollTimeout.current = setTimeout(() => {
                     isManualScrolling.current = false;
@@ -299,39 +334,51 @@
 
             return (
                 <div 
-                    className="min-h-screen pb-24 md:pb-0"
-                    style={{ fontSize: `${fontScale * 16}px` }} // Root font scaling
+                    className="min-h-screen pb-24 md:pb-0 bg-[#f5f5f7] dark:bg-black text-[#1d1d1f] dark:text-stone-200 transition-colors duration-300"
+                    style={{ fontSize: `${fontScale * 16}px` }}
                 >
                     {/* Navigation Bar (Glassmorphism) */}
-                    <nav className="fixed top-0 left-0 right-0 bg-[#f5f5f7]/80 backdrop-blur-xl border-b border-stone-200/50 z-50 transition-all duration-300">
+                    <nav className="fixed top-0 left-0 right-0 bg-[#f5f5f7]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-stone-200/50 dark:border-stone-800/50 z-50 transition-all duration-300">
                         <div className="max-w-6xl mx-auto px-4">
                             <div className="flex justify-between items-center h-16">
                                 <span 
-                                    className="font-semibold text-red-700 flex items-center gap-2 cursor-pointer"
+                                    className="font-semibold text-red-700 dark:text-red-500 flex items-center gap-2 cursor-pointer"
                                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                                 >
-                                    <span className="bg-red-600 text-white px-2 py-0.5 rounded text-[0.8em]">马年</span> 
-                                    <span className="text-[1.1em] tracking-tight text-[#1d1d1f]">春节·双城记</span>
+                                    <span className="bg-red-600 dark:bg-red-700 text-white px-2 py-0.5 rounded text-[0.8em]">马年</span> 
+                                    <span className="text-[1.1em] tracking-tight text-[#1d1d1f] dark:text-stone-100">春节·双城记</span>
                                 </span>
                                 
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3 md:gap-4">
                                     {/* Desktop Menu */}
                                     <div className="hidden md:flex space-x-1">
                                         {MENU_ITEMS.map((item) => (
                                             <button
                                                 key={item.id}
                                                 onClick={() => scrollToSection(item.id)}
-                                                className={`px-3 py-1.5 rounded-full text-[0.9em] transition-all duration-300 ${activeTab === item.id ? 'text-[#1d1d1f] font-medium bg-white shadow-sm' : 'text-stone-500 hover:text-[#1d1d1f]'}`}
+                                                className={`px-3 py-1.5 rounded-full text-[0.9em] transition-all duration-300 
+                                                    ${activeTab === item.id 
+                                                        ? 'text-[#1d1d1f] font-medium bg-white dark:bg-stone-700 dark:text-white shadow-sm' 
+                                                        : 'text-stone-500 dark:text-stone-400 hover:text-[#1d1d1f] dark:hover:text-white'}`}
                                             >
                                                 {item.label}
                                             </button>
                                         ))}
                                     </div>
 
+                                    {/* Dark Mode Toggle */}
+                                    <button 
+                                        onClick={toggleDarkMode}
+                                        className="flex items-center justify-center bg-stone-200/50 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-[#1d1d1f] dark:text-stone-200 p-2 rounded-full transition-colors active:scale-95 w-9 h-9"
+                                        title={isDarkMode ? "切换亮色模式" : "切换深色模式"}
+                                    >
+                                        {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                                    </button>
+
                                     {/* Font Size Toggle Button */}
                                     <button 
                                         onClick={toggleFontScale}
-                                        className="flex items-center gap-1.5 bg-stone-200/50 hover:bg-stone-200 text-[#1d1d1f] px-3 py-1.5 rounded-full transition-colors active:scale-95"
+                                        className="flex items-center gap-1.5 bg-stone-200/50 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-[#1d1d1f] dark:text-stone-200 px-3 py-1.5 rounded-full transition-colors active:scale-95"
                                         title="调整字体大小"
                                     >
                                         <Type size={18} />
@@ -343,13 +390,14 @@
                     </nav>
 
                     {/* Mobile Bottom Nav */}
-                    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#f5f5f7]/90 backdrop-blur-xl border-t border-stone-200 z-50 pb-safe shadow-lg">
+                    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#f5f5f7]/90 dark:bg-[#1c1c1e]/90 backdrop-blur-xl border-t border-stone-200 dark:border-stone-800 z-50 pb-safe shadow-lg">
                         <div className="flex justify-around items-center h-16 px-2">
                             {MENU_ITEMS.map((item) => (
                                 <button
                                     key={item.id}
                                     onClick={() => scrollToSection(item.id)}
-                                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${activeTab === item.id ? 'text-red-600' : 'text-stone-400'}`}
+                                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors 
+                                        ${activeTab === item.id ? 'text-red-600 dark:text-red-400' : 'text-stone-400 dark:text-stone-500'}`}
                                 >
                                     <item.icon size={22} strokeWidth={activeTab === item.id ? 2.5 : 2} />
                                     <span className="text-[10px] font-medium">{item.label}</span>
@@ -361,28 +409,28 @@
                     {/* Hero Section */}
                     <div className="relative pt-32 pb-12 px-4 md:px-6 text-center animate-fade-in-up">
                         <div className="max-w-4xl mx-auto mb-10">
-                            <div className="inline-block px-4 py-1.5 bg-red-100 text-red-700 rounded-full text-[0.85em] font-semibold mb-6 tracking-wide">
+                            <div className="inline-block px-4 py-1.5 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 rounded-full text-[0.85em] font-semibold mb-6 tracking-wide transition-colors">
                                 全家福 6人行 · 舒适深度游
                             </div>
-                            <h1 className="text-5xl md:text-7xl font-bold text-[#1d1d1f] mb-6 leading-tight tracking-tight">
+                            <h1 className="text-5xl md:text-7xl font-bold text-[#1d1d1f] dark:text-white mb-6 leading-tight tracking-tight transition-colors">
                                 彩云之南<br/>
-                                <span className="text-red-600">团圆</span> 之旅
+                                <span className="text-red-600 dark:text-red-500">团圆</span> 之旅
                             </h1>
-                            <p className="text-[1.2em] md:text-[1.5em] text-stone-500 max-w-2xl mx-auto font-medium leading-relaxed">
+                            <p className="text-[1.2em] md:text-[1.5em] text-stone-500 dark:text-stone-400 max-w-2xl mx-auto font-medium leading-relaxed transition-colors">
                                 大理的慢时光，昆明的花与海。<br/>
                                 这一次，给父母最从容的春节。
                             </p>
                         </div>
 
                         {/* 首页大图 (Banner Image) */}
-                        <div className="max-w-6xl mx-auto rounded-[2rem] overflow-hidden shadow-2xl ring-1 ring-black/5 relative aspect-video md:aspect-[21/9]">
+                        <div className="max-w-6xl mx-auto rounded-[2rem] overflow-hidden shadow-2xl dark:shadow-none ring-1 ring-black/5 dark:ring-white/10 relative aspect-video md:aspect-[21/9]">
                             <img 
                                 src="images/Gemini_Generated_Image_yoi98ryoi98ryoi9.png" 
                                 alt="云南春节全家福" 
                                 className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700 ease-out"
                                 onError={(e) => {
                                     e.target.style.display = 'none';
-                                    e.target.parentElement.classList.add('bg-stone-200', 'flex', 'items-center', 'justify-center');
+                                    e.target.parentElement.classList.add('bg-stone-200', 'dark:bg-stone-800', 'flex', 'items-center', 'justify-center');
                                     e.target.parentElement.innerHTML = `<div class="text-stone-400 font-medium flex flex-col items-center p-4 text-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-2 opacity-50"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                                         <span>预览模式：图片无法加载</span>
@@ -400,24 +448,24 @@
                         <section id="overview" className="scroll-mt-24 animate-fade-in-up delay-100">
                             <SectionTitle title="行程亮点" icon={Compass} />
                             <div className="grid md:grid-cols-3 gap-6">
-                                <Card className="bg-[#f5f5f7] md:bg-white"> {/* Apple card style */}
+                                <Card className="bg-[#f5f5f7] md:bg-white dark:bg-[#2c2c2e]"> 
                                     <Sun className="text-orange-500 mb-4" size={40} />
-                                    <h3 className="text-2xl font-bold mb-2">大理深度慢游</h3>
-                                    <p className="text-stone-500 leading-relaxed text-[1.05em]">
+                                    <h3 className="text-2xl font-bold mb-2 text-[#1d1d1f] dark:text-white">大理深度慢游</h3>
+                                    <p className="text-stone-500 dark:text-stone-400 leading-relaxed text-[1.05em]">
                                         连住4晚不挪窝。放弃奔波的沙溪，改为古城、喜洲、双廊深度游，确保父母体力充沛。
                                     </p>
                                 </Card>
                                 <Card>
                                     <Train className="text-blue-500 mb-4" size={40} />
-                                    <h3 className="text-2xl font-bold mb-2">人车分流策略</h3>
-                                    <p className="text-stone-500 leading-relaxed text-[1.05em]">
+                                    <h3 className="text-2xl font-bold mb-2 text-[#1d1d1f] dark:text-white">人车分流策略</h3>
+                                    <p className="text-stone-500 dark:text-stone-400 leading-relaxed text-[1.05em]">
                                         完美解决7座车行李装载痛点。转场日夫妻自驾运物资，父母坐高铁享受舒适旅程。
                                     </p>
                                 </Card>
                                 <Card>
                                     <Hotel className="text-green-500 mb-4" size={40} />
-                                    <h3 className="text-2xl font-bold mb-2">顶级住宿体验</h3>
-                                    <p className="text-stone-500 leading-relaxed text-[1.05em]">
+                                    <h3 className="text-2xl font-bold mb-2 text-[#1d1d1f] dark:text-white">顶级住宿体验</h3>
+                                    <p className="text-stone-500 dark:text-stone-400 leading-relaxed text-[1.05em]">
                                         大理住进古城边的全智能民宿，昆明入住滇池旁的洲际酒店，既有烟火气又有奢享感。
                                     </p>
                                 </Card>
@@ -427,54 +475,54 @@
                         {/* Logistics Section */}
                         <section id="logistics" className="scroll-mt-24 animate-fade-in-up delay-200">
                             <SectionTitle title="核心交通" icon={Car} />
-                            <Card className="bg-gradient-to-br from-white to-stone-100 border-none">
+                            <Card className="bg-gradient-to-br from-white to-stone-100 dark:from-[#1c1c1e] dark:to-[#2c2c2e] border-none">
                                 <div className="space-y-10">
-                                    <div className="relative pl-8 border-l-4 border-stone-200">
-                                        <div className="absolute -left-[10px] top-1 w-4 h-4 bg-stone-400 rounded-full ring-4 ring-white"></div>
-                                        <h3 className="text-xl font-bold text-[#1d1d1f]">2月15日：多路集结</h3>
+                                    <div className="relative pl-8 border-l-4 border-stone-200 dark:border-stone-700">
+                                        <div className="absolute -left-[10px] top-1 w-4 h-4 bg-stone-400 dark:bg-stone-600 rounded-full ring-4 ring-white dark:ring-[#1c1c1e]"></div>
+                                        <h3 className="text-xl font-bold text-[#1d1d1f] dark:text-white">2月15日：多路集结</h3>
                                         <div className="mt-4 grid md:grid-cols-2 gap-4">
-                                            <div className="bg-white p-5 rounded-2xl shadow-sm">
-                                                <span className="font-bold text-blue-600 block mb-1 text-[0.9em]">🚗 女方父母</span>
-                                                <p className="text-stone-600">驾车满载年货直达大理民宿，卸下重行李。</p>
+                                            <div className="bg-white dark:bg-[#151516] p-5 rounded-2xl shadow-sm">
+                                                <span className="font-bold text-blue-600 dark:text-blue-400 block mb-1 text-[0.9em]">🚗 女方父母</span>
+                                                <p className="text-stone-600 dark:text-stone-300">驾车满载年货直达大理民宿，卸下重行李。</p>
                                             </div>
-                                            <div className="bg-white p-5 rounded-2xl shadow-sm">
-                                                <span className="font-bold text-orange-600 block mb-1 text-[0.9em]">✈️ 男方父母 & 夫妻</span>
-                                                <p className="text-stone-600">飞抵昆明/大理，打车前往民宿汇合。</p>
+                                            <div className="bg-white dark:bg-[#151516] p-5 rounded-2xl shadow-sm">
+                                                <span className="font-bold text-orange-600 dark:text-orange-400 block mb-1 text-[0.9em]">✈️ 男方父母 & 夫妻</span>
+                                                <p className="text-stone-600 dark:text-stone-300">飞抵昆明/大理，打车前往民宿汇合。</p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="relative pl-8 border-l-4 border-stone-200">
-                                        <div className="absolute -left-[10px] top-1 w-4 h-4 bg-stone-400 rounded-full ring-4 ring-white"></div>
-                                        <h3 className="text-xl font-bold text-[#1d1d1f]">2月15-18日：大理驻扎期</h3>
-                                        <p className="mt-2 text-stone-600 leading-relaxed text-[1.05em]">
-                                            <span className="font-bold text-[#1d1d1f]">短途游玩：</span> 行李不动。7座车坐满6人游览古城周边。<br/>
-                                            <span className="text-stone-400 text-[0.9em]">💡 去双廊等稍远的地方，建议叫一辆网约车分流年轻夫妻。</span>
+                                    <div className="relative pl-8 border-l-4 border-stone-200 dark:border-stone-700">
+                                        <div className="absolute -left-[10px] top-1 w-4 h-4 bg-stone-400 dark:bg-stone-600 rounded-full ring-4 ring-white dark:ring-[#1c1c1e]"></div>
+                                        <h3 className="text-xl font-bold text-[#1d1d1f] dark:text-white">2月15-18日：大理驻扎期</h3>
+                                        <p className="mt-2 text-stone-600 dark:text-stone-300 leading-relaxed text-[1.05em]">
+                                            <span className="font-bold text-[#1d1d1f] dark:text-white">短途游玩：</span> 行李不动。7座车坐满6人游览古城周边。<br/>
+                                            <span className="text-stone-400 dark:text-stone-500 text-[0.9em]">💡 去双廊等稍远的地方，建议叫一辆网约车分流年轻夫妻。</span>
                                         </p>
                                     </div>
 
-                                    <div className="relative pl-8 border-l-4 border-blue-500">
-                                        <div className="absolute -left-[11px] top-1 w-5 h-5 bg-blue-600 rounded-full ring-4 ring-blue-100"></div>
-                                        <h3 className="text-2xl font-bold text-blue-700">2月19日：昆明大撤退</h3>
+                                    <div className="relative pl-8 border-l-4 border-blue-500 dark:border-blue-600">
+                                        <div className="absolute -left-[11px] top-1 w-5 h-5 bg-blue-600 dark:bg-blue-500 rounded-full ring-4 ring-blue-100 dark:ring-blue-900/30"></div>
+                                        <h3 className="text-2xl font-bold text-blue-700 dark:text-blue-400">2月19日：昆明大撤退</h3>
                                         <div className="mt-6 grid md:grid-cols-2 gap-6">
-                                            <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-100">
+                                            <div className="bg-orange-50/50 dark:bg-orange-900/10 p-6 rounded-3xl border border-orange-100 dark:border-orange-900/30">
                                                 <div className="flex items-center gap-3 mb-3">
-                                                    <div className="p-2 bg-orange-100 rounded-full text-orange-600"><Car size={20}/></div>
-                                                    <span className="font-bold text-lg text-slate-800">A组：后勤运输 (夫妻)</span>
+                                                    <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-full text-orange-600 dark:text-orange-400"><Car size={20}/></div>
+                                                    <span className="font-bold text-lg text-slate-800 dark:text-slate-200">A组：后勤运输 (夫妻)</span>
                                                 </div>
-                                                <ul className="text-stone-600 space-y-2 text-[0.95em]">
-                                                    <li>📦 <span className="font-bold text-orange-600">放倒第三排，装所有行李</span></li>
+                                                <ul className="text-stone-600 dark:text-stone-300 space-y-2 text-[0.95em]">
+                                                    <li>📦 <span className="font-bold text-orange-600 dark:text-orange-400">放倒第三排，装所有行李</span></li>
                                                     <li>⏱ 自驾约 4.5 小时</li>
                                                     <li>✨ 享受二人公路旅行</li>
                                                 </ul>
                                             </div>
 
-                                            <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100">
+                                            <div className="bg-blue-50/50 dark:bg-blue-900/10 p-6 rounded-3xl border border-blue-100 dark:border-blue-900/30">
                                                 <div className="flex items-center gap-3 mb-3">
-                                                    <div className="p-2 bg-blue-100 rounded-full text-blue-600"><Train size={20}/></div>
-                                                    <span className="font-bold text-lg text-slate-800">B组：享乐团 (父母)</span>
+                                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400"><Train size={20}/></div>
+                                                    <span className="font-bold text-lg text-slate-800 dark:text-slate-200">B组：享乐团 (父母)</span>
                                                 </div>
-                                                <ul className="text-stone-600 space-y-2 text-[0.95em]">
+                                                <ul className="text-stone-600 dark:text-stone-300 space-y-2 text-[0.95em]">
                                                     <li>🎒 轻装上阵，大理站出发</li>
                                                     <li>⏱ 高铁约 2 小时</li>
                                                     <li>✨ 平稳舒适，车上休息</li>
@@ -491,7 +539,7 @@
                             <SectionTitle title="每日行程" icon={Calendar} />
 
                             {/* Calendar Bar */}
-                            <div className="sticky top-16 z-30 bg-[#f5f5f7]/95 backdrop-blur-md pt-2 pb-6 mb-4 -mx-6 px-6 overflow-x-auto no-scrollbar">
+                            <div className="sticky top-16 z-30 bg-[#f5f5f7]/95 dark:bg-[#000000]/95 backdrop-blur-md pt-2 pb-6 mb-4 -mx-6 px-6 overflow-x-auto no-scrollbar transition-colors duration-300">
                                 <div className="flex gap-3 min-w-max">
                                     {CALENDAR_DAYS.map((day) => (
                                         <button
@@ -500,8 +548,8 @@
                                             onClick={() => scrollToDay(day.id)}
                                             className={`flex flex-col items-center justify-center p-3 rounded-2xl min-w-[5.5rem] transition-all duration-300
                                                 ${activeDay === day.id 
-                                                    ? 'bg-[#1d1d1f] text-white shadow-lg scale-105' 
-                                                    : 'bg-white text-stone-500 hover:bg-white hover:shadow-md'}`}
+                                                    ? 'bg-[#1d1d1f] dark:bg-white text-white dark:text-black shadow-lg scale-105' 
+                                                    : 'bg-white dark:bg-[#1c1c1e] text-stone-500 dark:text-stone-400 hover:bg-white dark:hover:bg-[#2c2c2e] hover:shadow-md'}`}
                                         >
                                             <span className="text-[0.75em] font-bold uppercase tracking-wider opacity-80">{day.weekday}</span>
                                             <span className="text-[1.4em] font-bold my-0.5 leading-none">{day.date}</span>
@@ -532,10 +580,10 @@
                                     { id: 4, date: "2.18 周三 (初二)", title: "非遗体验", steps: [
                                         { time: "上午", content: <span>前往<AttractionLink name="周城" keyword="周城扎染" />。全家动手制作扎染作品，作为春节纪念。</span> },
                                         { time: "下午", content: <span>前往<AttractionLink name="洱海生态廊道" keyword="洱海生态廊道 阳南溪" />（阳南溪入口）。父母坐观光车，夫妻骑行。</span> },
-                                        { time: "晚上", content: <span className="font-bold text-red-600">回民宿晚餐，提前打包好所有行李，准备明天的分流转场！</span> }
+                                        { time: "晚上", content: <span className="font-bold text-red-600 dark:text-red-400">回民宿晚餐，提前打包好所有行李，准备明天的分流转场！</span> }
                                     ]},
                                     { id: 5, date: "2.19 周四 (初三)", title: "转场昆明", color: "blue", steps: [
-                                        { time: "12:30", content: <span><span className="font-bold text-orange-600">[A组夫妻]</span> 搬运所有行李自驾出发。<br/><span className="font-bold text-blue-600">[B组父母]</span> 打车去大理站，坐高铁去昆明。</span> },
+                                        { time: "12:30", content: <span><span className="font-bold text-orange-600 dark:text-orange-400">[A组夫妻]</span> 搬运所有行李自驾出发。<br/><span className="font-bold text-blue-600 dark:text-blue-400">[B组父母]</span> 打车去大理站，坐高铁去昆明。</span> },
                                         { time: "17:00", content: "全员在昆明洲际酒店汇合。" },
                                         { time: "傍晚", content: <span>步行至酒店对面的<AttractionLink name="海埂大坝" />，投喂红嘴鸥。</span> }
                                     ]},
@@ -546,24 +594,24 @@
                                     ]},
                                     { id: 7, date: "2.21 周六 (初五)", title: "完美收官", steps: [
                                         { time: "上午", content: "享受洲际酒店豪华早餐。" },
-                                        { time: "13:00", content: <span className="font-bold text-blue-600">女方父母驾驶装满鲜花的7座车回重庆。</span> },
-                                        { time: "15:00", content: <span className="font-bold text-orange-600">男方父母 & 夫妻打车去机场返程。</span> }
+                                        { time: "13:00", content: <span className="font-bold text-blue-600 dark:text-blue-400">女方父母驾驶装满鲜花的7座车回重庆。</span> },
+                                        { time: "15:00", content: <span className="font-bold text-orange-600 dark:text-orange-400">男方父母 & 夫妻打车去机场返程。</span> }
                                     ]}
                                 ].map((day) => (
                                     <div id={`day-${day.id}`} key={day.id} className="scroll-mt-40">
-                                        <Card className="border-0 ring-1 ring-black/5 hover:ring-black/10">
-                                            <div className="flex justify-between items-center mb-6 pb-4 border-b border-stone-100">
+                                        <Card className="border-0 ring-1 ring-black/5 dark:ring-white/10 hover:ring-black/10 dark:hover:ring-white/20">
+                                            <div className="flex justify-between items-center mb-6 pb-4 border-b border-stone-100 dark:border-stone-800">
                                                 <div>
-                                                    <h3 className="text-xl font-bold text-[#1d1d1f]">{day.date}</h3>
+                                                    <h3 className="text-xl font-bold text-[#1d1d1f] dark:text-white">{day.date}</h3>
                                                 </div>
                                                 <Badge color={day.color || "stone"}>{day.title}</Badge>
                                             </div>
                                             <div className="space-y-6">
                                                 {day.steps.map((step, idx) => (
                                                     <div key={idx} className="flex gap-4">
-                                                        <div className="w-16 shrink-0 text-right font-bold text-stone-400 text-[0.9em] pt-1">{step.time}</div>
-                                                        <div className="text-stone-700 text-[1.05em] leading-relaxed pb-4 border-l-2 border-stone-100 pl-4 relative">
-                                                            <div className="absolute -left-[7px] top-2 w-3 h-3 bg-stone-200 rounded-full border-2 border-white"></div>
+                                                        <div className="w-16 shrink-0 text-right font-bold text-stone-400 dark:text-stone-500 text-[0.9em] pt-1">{step.time}</div>
+                                                        <div className="text-stone-700 dark:text-stone-300 text-[1.05em] leading-relaxed pb-4 border-l-2 border-stone-100 dark:border-stone-800 pl-4 relative">
+                                                            <div className="absolute -left-[7px] top-2 w-3 h-3 bg-stone-200 dark:bg-stone-700 rounded-full border-2 border-white dark:border-[#1c1c1e]"></div>
                                                             {step.content}
                                                         </div>
                                                     </div>
@@ -581,12 +629,12 @@
                             <div className="grid md:grid-cols-2 gap-6">
                                 <Card>
                                     <div className="flex justify-between items-start mb-2">
-                                        <h3 className="text-2xl font-bold text-[#1d1d1f]">大理故里民宿</h3>
+                                        <h3 className="text-2xl font-bold text-[#1d1d1f] dark:text-white">大理故里民宿</h3>
                                         <Badge color="stone">古城南门店</Badge>
                                     </div>
                                     <div className="mb-4 flex flex-wrap items-center gap-3">
-                                        <p className="text-stone-500 font-medium">一塔路22号 (连住4晚)</p>
-                                        <a href="https://j.map.baidu.com/d0/DuUk" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[0.85em] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors">
+                                        <p className="text-stone-500 dark:text-stone-400 font-medium">一塔路22号 (连住4晚)</p>
+                                        <a href="https://j.map.baidu.com/d0/DuUk" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[0.85em] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
                                             <Navigation size={12} /> 导航
                                         </a>
                                     </div>
@@ -599,10 +647,10 @@
 
                                 <Card>
                                     <div className="flex justify-between items-start mb-2">
-                                        <h3 className="text-2xl font-bold text-[#1d1d1f]">昆明洲际酒店</h3>
+                                        <h3 className="text-2xl font-bold text-[#1d1d1f] dark:text-white">昆明洲际酒店</h3>
                                         <Badge color="stone">待定</Badge>
                                     </div>
-                                    <p className="text-stone-500 font-medium mb-4">滇池国家旅游度假区 (连住2晚)</p>
+                                    <p className="text-stone-500 dark:text-stone-400 font-medium mb-4">滇池国家旅游度假区 (连住2晚)</p>
                                     <div className="flex gap-2 flex-wrap">
                                         <Badge color="blue">出门即海鸥</Badge>
                                         <Badge color="blue">停车方便</Badge>
@@ -620,16 +668,16 @@
                                     <Card key={idx} className="flex flex-col justify-between h-full hover:-translate-y-1 transition-transform duration-300">
                                         <div>
                                             <div className="flex justify-between items-start mb-3">
-                                                <h4 className="text-xl font-bold text-[#1d1d1f]">
+                                                <h4 className="text-xl font-bold text-[#1d1d1f] dark:text-white">
                                                     <AttractionLink name={item.name} keyword={item.mapKeyword} />
                                                 </h4>
                                             </div>
-                                            <p className="text-stone-500 leading-relaxed text-[0.95em] mb-4">{item.desc}</p>
+                                            <p className="text-stone-500 dark:text-stone-400 leading-relaxed text-[0.95em] mb-4">{item.desc}</p>
                                         </div>
                                         
                                         <div className="mt-auto space-y-4">
-                                            <div className="bg-[#fff9f9] p-3 rounded-2xl border border-red-100/50">
-                                                <p className="text-[0.85em] text-red-800 font-medium flex gap-2">
+                                            <div className="bg-[#fff9f9] dark:bg-red-900/10 p-3 rounded-2xl border border-red-100/50 dark:border-red-900/30">
+                                                <p className="text-[0.85em] text-red-800 dark:text-red-300 font-medium flex gap-2">
                                                     <span className="shrink-0">💡</span>
                                                     <span>{item.tips}</span>
                                                 </p>
@@ -639,7 +687,7 @@
                                                 href={item.navLink}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="w-full flex items-center justify-center gap-2 text-[0.9em] font-semibold text-white bg-[#007aff] hover:bg-[#0071eb] py-3 rounded-xl transition-all shadow-md shadow-blue-200"
+                                                className="w-full flex items-center justify-center gap-2 text-[0.9em] font-semibold text-white bg-[#007aff] hover:bg-[#0071eb] py-3 rounded-xl transition-all shadow-md shadow-blue-200 dark:shadow-none"
                                             >
                                                 <Navigation size={16} /> 
                                                 一键导航
@@ -653,23 +701,23 @@
                         {/* Tips */}
                         <section id="tips" className="scroll-mt-24">
                             <SectionTitle title="行前备忘" icon={AlertCircle} />
-                            <div className="bg-[#fff9f9] border border-red-100 rounded-3xl p-8">
+                            <div className="bg-[#fff9f9] dark:bg-[#1c1c1e] border border-red-100 dark:border-stone-800 rounded-3xl p-8">
                                 <ul className="space-y-6">
                                     <li className="flex items-start md:items-center gap-4">
-                                        <span className="font-bold text-red-600 shrink-0 text-[1.1em]">1月15日前</span>
-                                        <span className="text-stone-700 text-[1.05em]">预订大理古城南门附近的年夜饭包间。</span>
+                                        <span className="font-bold text-red-600 dark:text-red-400 shrink-0 text-[1.1em]">1月15日前</span>
+                                        <span className="text-stone-700 dark:text-stone-300 text-[1.05em]">预订大理古城南门附近的年夜饭包间。</span>
                                     </li>
                                     <li className="flex items-start md:items-center gap-4">
-                                        <span className="font-bold text-red-600 shrink-0 text-[1.1em]">2月05日前</span>
-                                        <span className="text-stone-700 text-[1.05em]">购买2月19日“大理→昆明”的高铁票（4张）。</span>
+                                        <span className="font-bold text-red-600 dark:text-red-400 shrink-0 text-[1.1em]">2月05日前</span>
+                                        <span className="text-stone-700 dark:text-stone-300 text-[1.05em]">购买2月19日“大理→昆明”的高铁票（4张）。</span>
                                     </li>
                                     <li className="flex items-start md:items-center gap-4">
-                                        <span className="font-bold text-[#1d1d1f] shrink-0 text-[1.1em]">穿衣指南</span>
-                                        <span className="text-stone-700 text-[1.05em]">洋葱式穿衣。早晚温差大，必须带薄羽绒服。</span>
+                                        <span className="font-bold text-[#1d1d1f] dark:text-stone-100 shrink-0 text-[1.1em]">穿衣指南</span>
+                                        <span className="text-stone-700 dark:text-stone-300 text-[1.05em]">洋葱式穿衣。早晚温差大，必须带薄羽绒服。</span>
                                     </li>
                                     <li className="flex items-start md:items-center gap-4">
-                                        <span className="font-bold text-[#1d1d1f] shrink-0 text-[1.1em]">驾驶提示</span>
-                                        <span className="text-stone-700 text-[1.05em]">出发前检查7座车胎压。大理回昆明段夫妻轮换驾驶。</span>
+                                        <span className="font-bold text-[#1d1d1f] dark:text-stone-100 shrink-0 text-[1.1em]">驾驶提示</span>
+                                        <span className="text-stone-700 dark:text-stone-300 text-[1.05em]">出发前检查7座车胎压。大理回昆明段夫妻轮换驾驶。</span>
                                     </li>
                                 </ul>
                             </div>
@@ -678,8 +726,8 @@
                     </main>
 
                     {/* Footer */}
-                    <footer className="bg-[#f5f5f7] border-t border-stone-200 text-stone-400 py-16 text-center">
-                        <p className="mb-3 text-[1.1em] font-medium text-stone-500">2026 马年大吉 · 阖家欢乐</p>
+                    <footer className="bg-[#f5f5f7] dark:bg-black border-t border-stone-200 dark:border-stone-800 text-stone-400 dark:text-stone-600 py-16 text-center transition-colors duration-300">
+                        <p className="mb-3 text-[1.1em] font-medium text-stone-500 dark:text-stone-500">2026 马年大吉 · 阖家欢乐</p>
                         <p className="text-[0.8em] opacity-60">Made with ❤️ for Family</p>
                     </footer>
 
@@ -687,7 +735,7 @@
                     {showScrollTop && (
                         <button 
                             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                            className="fixed bottom-24 md:bottom-10 right-6 bg-[#1d1d1f]/80 backdrop-blur text-white p-4 rounded-full shadow-2xl hover:bg-black transition-all z-40 transform hover:scale-110"
+                            className="fixed bottom-24 md:bottom-10 right-6 bg-[#1d1d1f]/80 dark:bg-stone-700/80 backdrop-blur text-white p-4 rounded-full shadow-2xl hover:bg-black dark:hover:bg-stone-600 transition-all z-40 transform hover:scale-110"
                         >
                             <ArrowRight className="transform -rotate-90" size={24} />
                         </button>
