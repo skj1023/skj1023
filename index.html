@@ -67,7 +67,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
         // --- Icons (Minimalist) ---
         const IconBase = ({ children, size = 24, className = "" }) => (
@@ -198,13 +198,52 @@
             const [activeTab, setActiveTab] = useState('overview');
             const [activeDay, setActiveDay] = useState(null);
             const [showScrollTop, setShowScrollTop] = useState(false);
-            
-            // Font Size State: 1 = Normal, 1.2 = Large, 1.4 = Extra Large
             const [fontScale, setFontScale] = useState(1);
+            
+            // Ref for controlling scroll interaction
+            const isManualScrolling = useRef(false);
+            const scrollTimeout = useRef(null);
 
             useEffect(() => {
                 const ua = navigator.userAgent.toLowerCase();
                 if (/micromessenger/i.test(ua)) setIsWeChat(true);
+            }, []);
+
+            // Scroll Spy Logic for Calendar
+            useEffect(() => {
+                const observerOptions = {
+                    root: null,
+                    // Check intersection near the top of the viewport (offset by header + calendar bar)
+                    // -180px top margin to account for sticky headers, -60% bottom to focus on top part of screen
+                    rootMargin: '-180px 0px -60% 0px',
+                    threshold: 0
+                };
+
+                const observerCallback = (entries) => {
+                    if (isManualScrolling.current) return; // Skip if user clicked a button
+
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            const dayId = parseInt(entry.target.id.split('-')[1]);
+                            setActiveDay(dayId);
+                            
+                            // Auto scroll horizontal calendar strip to keep active day in view
+                            const calendarButton = document.getElementById(`calendar-btn-${dayId}`);
+                            if (calendarButton) {
+                                calendarButton.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                            }
+                        }
+                    });
+                };
+
+                const observer = new IntersectionObserver(observerCallback, observerOptions);
+                
+                CALENDAR_DAYS.forEach(day => {
+                    const element = document.getElementById(`day-${day.id}`);
+                    if (element) observer.observe(element);
+                });
+
+                return () => observer.disconnect();
             }, []);
 
             useEffect(() => {
@@ -238,13 +277,22 @@
             };
 
             const scrollToDay = (dayId) => {
+                // Set manual scrolling flag
+                isManualScrolling.current = true;
+                setActiveDay(dayId);
+
                 const element = document.getElementById(`day-${dayId}`);
                 if (element) {
                     const yOffset = -220; 
                     const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
                     window.scrollTo({top: y, behavior: 'smooth'});
-                    setActiveDay(dayId);
                 }
+
+                // Reset flag after scrolling animation (approx 1s)
+                if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+                scrollTimeout.current = setTimeout(() => {
+                    isManualScrolling.current = false;
+                }, 1000);
             };
 
             if (isWeChat) return <WeChatMask />;
@@ -448,6 +496,7 @@
                                     {CALENDAR_DAYS.map((day) => (
                                         <button
                                             key={day.id}
+                                            id={`calendar-btn-${day.id}`}
                                             onClick={() => scrollToDay(day.id)}
                                             className={`flex flex-col items-center justify-center p-3 rounded-2xl min-w-[5.5rem] transition-all duration-300
                                                 ${activeDay === day.id 
