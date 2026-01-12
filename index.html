@@ -226,6 +226,10 @@
             
             const isManualScrolling = useRef(false);
             const scrollTimeout = useRef(null);
+            
+            // New ref for main nav scrolling state
+            const isNavScrolling = useRef(false);
+            const navScrollTimeout = useRef(null);
 
             useEffect(() => {
                 const ua = navigator.userAgent.toLowerCase();
@@ -245,6 +249,36 @@
                     document.documentElement.classList.remove('dark');
                 }
             }, [isDarkMode]);
+
+            // Scroll Spy Logic for Main Navigation
+            useEffect(() => {
+                const observerOptions = {
+                    root: null,
+                    // Highlight when element is near the top-middle of screen
+                    // Using a negative top margin to account for fixed header and focus on the top part of the viewport
+                    rootMargin: '-100px 0px -40% 0px', 
+                    threshold: 0
+                };
+
+                const observerCallback = (entries) => {
+                    if (isNavScrolling.current) return; // Prevent updates during manual click scrolling
+
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            setActiveTab(entry.target.id);
+                        }
+                    });
+                };
+
+                const observer = new IntersectionObserver(observerCallback, observerOptions);
+                
+                MENU_ITEMS.forEach(item => {
+                    const element = document.getElementById(item.id);
+                    if (element) observer.observe(element);
+                });
+
+                return () => observer.disconnect();
+            }, []);
 
             // Scroll Spy Logic for Calendar
             useEffect(() => {
@@ -304,6 +338,10 @@
             };
 
             const scrollToSection = (id) => {
+                // Set manual scrolling flag to prevent observer from hijacking active state during scroll
+                isNavScrolling.current = true;
+                if (navScrollTimeout.current) clearTimeout(navScrollTimeout.current);
+
                 const element = document.getElementById(id);
                 if (element) {
                     const yOffset = -100;
@@ -311,6 +349,11 @@
                     window.scrollTo({top: y, behavior: 'smooth'});
                     setActiveTab(id);
                 }
+
+                // Reset flag after scrolling finishes (approximate duration)
+                navScrollTimeout.current = setTimeout(() => {
+                    isNavScrolling.current = false;
+                }, 1000);
             };
 
             const scrollToDay = (dayId) => {
