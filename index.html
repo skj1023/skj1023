@@ -16,7 +16,15 @@
                         stone: {
                             850: '#1c1c1e', // Apple dark background
                             900: '#151516',
+                        },
+                        cny: {
+                            red: '#D7261E',
+                            gold: '#FAD961',
+                            dark: '#8B0000',
                         }
+                    },
+                    backgroundImage: {
+                        'cny-pattern': "url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%239C92AC\" fill-opacity=\"0.05\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"3\"/%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"3\"/%3E%3C/g%3E%3C/svg%3E')",
                     }
                 }
             }
@@ -111,6 +119,8 @@
         const Navigation = (p) => <IconBase {...p}><polygon points="3 11 22 2 13 21 11 13 3 11"/></IconBase>;
         const Mountain = (p) => <IconBase {...p}><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></IconBase>;
         const Type = (p) => <IconBase {...p}><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></IconBase>;
+        const ChevronDown = (p) => <IconBase {...p}><polyline points="6 9 12 15 18 9"/></IconBase>;
+        const ChevronUp = (p) => <IconBase {...p}><polyline points="18 15 12 9 6 15"/></IconBase>;
 
         // --- Components ---
 
@@ -155,6 +165,127 @@
                 <span className={`text-[0.75em] font-medium px-2.5 py-1 rounded-full transition-colors ${colors[color] || colors.stone}`}>
                     {children}
                 </span>
+            );
+        };
+
+        // --- Dinner Menu Component ---
+        const DinnerMenu = () => {
+            const [isOpen, setIsOpen] = useState(false);
+
+            const toggleMenu = (e) => {
+                e.stopPropagation(); // 防止点击穿透触发其他逻辑
+                setIsOpen(!isOpen);
+            };
+
+            const menuCategories = [
+                {
+                    title: "云南特色菜",
+                    items: [
+                        { name: "铜锅洋芋焖鸡", count: "1份", tag: "商家招牌 TOP.6" },
+                        { name: "丘北椒炒见手青", count: "1份", tag: "网友推荐 TOP.3" },
+                        { name: "迪庆牦牛肉炖土豆", count: "1份" },
+                        { name: "百香果煮丁桂鱼", count: "1份" },
+                        { name: "滇南宜良烤鸭", count: "1份" }
+                    ]
+                },
+                {
+                    title: "凉菜",
+                    items: [
+                        { name: "口水鸡", count: "1份" },
+                        { name: "花生米", count: "1份" },
+                        { name: "蒜泥豇豆", count: "1份" },
+                        { name: "莲藕片", count: "1份" }
+                    ]
+                },
+                {
+                    title: "素菜",
+                    items: [
+                        { name: "大理腌菜老奶洋芋", count: "1份", tag: "网友推荐 TOP.1" },
+                        { name: "清炒时蔬", count: "1份" },
+                        { name: "俩亩地", count: "1份" }
+                    ]
+                },
+                {
+                    title: "汤 & 饮品",
+                    items: [
+                        { name: "百花豆米汤", count: "1份" },
+                        { name: "老北京酸梅汤", count: "2份" }
+                    ]
+                },
+                {
+                    title: "主食",
+                    items: [
+                        { name: "白米饭", count: "8份" },
+                        { name: "八宝饭", count: "1份" }
+                    ]
+                }
+            ];
+
+            return (
+                <div className="mt-4">
+                    <button 
+                        onClick={toggleMenu}
+                        className={`w-full flex items-center justify-between p-4 rounded-xl transition-all duration-300 group
+                            ${isOpen 
+                                ? 'bg-gradient-to-r from-red-700 to-red-600 text-white shadow-lg ring-2 ring-offset-2 ring-red-500' 
+                                : 'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30'}`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <span className="text-2xl">🧧</span>
+                            <span className="font-bold text-lg">年夜饭菜单 (6人餐)</span>
+                        </div>
+                        <div className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+                            <ChevronDown size={20} />
+                        </div>
+                    </button>
+
+                    <div 
+                        className={`overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? 'max-h-[1000px] opacity-100 mt-3' : 'max-h-0 opacity-0'}`}
+                    >
+                        <div className="bg-[#fffcf5] dark:bg-[#2a1a1a] rounded-xl border-2 border-red-200 dark:border-red-900/50 p-6 relative overflow-hidden shadow-inner">
+                            {/* Decorative background pattern */}
+                            <div className="absolute top-0 right-0 w-32 h-32 opacity-10 pointer-events-none">
+                                <svg viewBox="0 0 100 100" fill="red">
+                                    <path d="M50 0 L60 40 L100 50 L60 60 L50 100 L40 60 L0 50 L40 40 Z" />
+                                </svg>
+                            </div>
+
+                            {/* Header Info */}
+                            <div className="text-center mb-6 pb-4 border-b border-red-100 dark:border-red-900/30 border-dashed">
+                                <h3 className="font-bold text-xl text-red-800 dark:text-red-400 mb-1">山野杜鹃 云南厨房 天鹅餐厅</h3>
+                                <p className="text-sm text-red-600/70 dark:text-red-400/60 font-medium">2026年2月16日 18:30</p>
+                            </div>
+
+                            {/* Menu Grid */}
+                            <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
+                                {menuCategories.map((category, idx) => (
+                                    <div key={idx}>
+                                        <h4 className="flex items-center gap-2 font-bold text-red-700 dark:text-red-500 mb-2 text-sm">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                            {category.title}
+                                        </h4>
+                                        <ul className="space-y-2">
+                                            {category.items.map((item, i) => (
+                                                <li key={i} className="flex justify-between items-start text-sm border-b border-red-50 dark:border-red-900/20 pb-1 last:border-0">
+                                                    <span className="text-stone-700 dark:text-stone-300 font-medium flex-1">
+                                                        {item.name}
+                                                        {item.tag && <span className="ml-2 text-[10px] bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-300 px-1.5 py-0.5 rounded scale-90 inline-block origin-left">{item.tag}</span>}
+                                                    </span>
+                                                    <span className="text-stone-400 dark:text-stone-500 text-xs tabular-nums ml-2">{item.count}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="mt-6 pt-4 text-center text-xs text-red-400 dark:text-red-600/50 italic border-t border-red-100 dark:border-red-900/30 border-dashed">
+                                阖家团圆 · 恭喜发财
+                            </div>
+                        </div>
+                    </div>
+                </div>
             );
         };
 
@@ -613,7 +744,7 @@
                                     { id: 2, date: "2.16 周一 (除夕)", title: "春节团圆", color: "red", steps: [
                                         { time: "上午", content: <span>驾车前往<AttractionLink name="感通索道" />。索道上<AttractionLink name="苍山" />俯瞰洱海，下山步行至<AttractionLink name="寂照庵" />吃网红素斋。</span> },
                                         { time: "下午", content: "回民宿午休，贴春联，准备过年。" },
-                                        { time: "晚上", content: "吃年夜饭（需提前预订），饭后回民宿看春晚、守岁。" }
+                                        { time: "晚上", content: <div>吃<span className="font-bold text-red-600 dark:text-red-400">年夜饭</span>（需提前预订），饭后回民宿看春晚、守岁。<DinnerMenu /></div> }
                                     ]},
                                     { id: 3, date: "2.17 周二 (初一)", title: "环海祈福", steps: [
                                         { time: "上午", content: <span>前往<AttractionLink name="崇圣寺三塔" />祈福，在“聚影池”拍三塔倒影全家福。</span> },
